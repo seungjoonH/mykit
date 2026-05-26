@@ -1,0 +1,15 @@
+frontend: nextjs
+backend: spring
+db:
+  - redis
+infra:
+  - aws
+docs:
+  - security
+  - testing
+ai:
+  - all
+language:
+  default: en
+  include:
+    - ko

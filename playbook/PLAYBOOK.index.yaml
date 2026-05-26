@@ -1,0 +1,283 @@
+version: 0.1.0
+generatedAt: 2026-05-06T10:07:51.431Z
+selection:
+  frontend: nextjs
+  backend: spring
+  db:
+    - redis
+  infra:
+    - aws
+  docs:
+    - security
+    - testing
+  ai:
+    - all
+  language:
+    default: en
+    include:
+      - ko
+catalog:
+  availableOptions:
+    frontend:
+      - nextjs
+      - react-vite
+      - vue-nuxt
+      - sveltekit
+    backend:
+      - express
+      - nestjs
+      - spring
+    db:
+      - postgres
+      - mysql
+      - mongodb
+      - redis
+    infra:
+      - aws
+      - gcp
+      - azure
+      - vercel
+      - kubernetes
+    docs:
+      - security
+      - testing
+    ai:
+      - agents
+      - claude
+      - cursor-rules
+      - examples
+    language:
+      default: en
+      include:
+        - ko
+  templatePaths:
+    core:
+      - playbook/en/core/readability.md
+      - playbook/en/core/code-style.md
+      - playbook/en/core/code-hygiene.md
+      - playbook/en/core/naming.md
+      - playbook/en/core/performance.md
+      - playbook/en/core/error-handling.md
+      - playbook/en/core/data-design.md
+    frontend:
+      common:
+        - playbook/en/frontend/styling/tailwindcss.md
+        - playbook/en/frontend/styling/css-module.md
+        - playbook/en/frontend/styling/theme.md
+        - playbook/en/frontend/ui/component.md
+        - playbook/en/frontend/ui/accessibility.md
+        - playbook/en/frontend/ui/svg-icon.md
+        - playbook/en/frontend/data/react-query.md
+        - playbook/en/frontend/content/i18n.md
+        - playbook/en/frontend/content/seo.md
+      stacks:
+        - playbook/en/frontend/stacks/nextjs.md
+        - playbook/en/frontend/stacks/react-vite.md
+        - playbook/en/frontend/stacks/vue-nuxt.md
+        - playbook/en/frontend/stacks/sveltekit.md
+    backend:
+      - playbook/en/backend/express.md
+      - playbook/en/backend/nestjs.md
+      - playbook/en/backend/spring.md
+    database:
+      - playbook/en/database/postgres.md
+      - playbook/en/database/mysql.md
+      - playbook/en/database/mongodb.md
+      - playbook/en/database/redis.md
+    infra:
+      - playbook/en/infra/aws.md
+      - playbook/en/infra/gcp.md
+      - playbook/en/infra/azure.md
+      - playbook/en/infra/vercel.md
+      - playbook/en/infra/kubernetes.md
+    crossCutting:
+      - playbook/en/security.md
+      - playbook/en/testing.md
+entrypoints:
+  preferredLanguage: en
+  globalStart:
+    - playbook/PLAYBOOK.index.yaml
+    - PLAYBOOK.md
+  claude:
+    - CLAUDE.md
+    - playbook/PLAYBOOK.index.yaml
+    - design/design.md
+    - design/architecture.md
+    - design/erd.md
+    - design/api-spec.md
+  codex:
+    - AGENTS.md
+    - playbook/PLAYBOOK.index.yaml
+    - design/design.md
+    - design/architecture.md
+    - design/erd.md
+    - design/api-spec.md
+domainMap:
+  core:
+    readability: playbook/en/core/readability.md
+    codeStyle: playbook/en/core/code-style.md
+    codeHygiene: playbook/en/core/code-hygiene.md
+    naming: playbook/en/core/naming.md
+    performance: playbook/en/core/performance.md
+    errorHandling: playbook/en/core/error-handling.md
+    dataDesign: playbook/en/core/data-design.md
+  frontend:
+    stack: playbook/en/frontend/stacks/nextjs.md
+    styling:
+      - playbook/en/frontend/styling/tailwindcss.md
+      - playbook/en/frontend/styling/css-module.md
+      - playbook/en/frontend/styling/theme.md
+    ui:
+      - playbook/en/frontend/ui/component.md
+      - playbook/en/frontend/ui/accessibility.md
+      - playbook/en/frontend/ui/svg-icon.md
+    data: playbook/en/frontend/data/react-query.md
+    content:
+      - playbook/en/frontend/content/i18n.md
+      - playbook/en/frontend/content/seo.md
+  backend: playbook/en/backend/spring.md
+  database:
+    - playbook/en/database/redis.md
+  infra:
+    - playbook/en/infra/aws.md
+  crossCutting:
+    - playbook/en/security.md
+    - playbook/en/testing.md
+  design:
+    - design/design.md
+    - design/erd.md
+    - design/architecture.md
+    - design/api-spec.md
+editRoutes:
+  - id: requirements-scope-change
+    when: 요구사항/유저 플로우/범위 변경
+    open:
+      - design/design.md
+      - design/architecture.md
+    thenRead:
+      - playbook/en/core/readability.md
+      - playbook/en/core/code-style.md
+  - id: api-contract-change
+    when: API 스펙/에러 포맷/요청 응답 스키마 변경
+    open:
+      - design/api-spec.md
+      - playbook/en/backend/spring.md
+      - playbook/en/core/error-handling.md
+    thenRead:
+      - playbook/en/security.md
+      - playbook/en/testing.md
+  - id: data-model-change
+    when: 엔터티/테이블/인덱스/관계 변경
+    open:
+      - design/erd.md
+      - playbook/en/core/data-design.md
+      - playbook/en/database/redis.md
+    thenRead:
+      - playbook/en/backend/spring.md
+      - design/api-spec.md
+  - id: frontend-ui-change
+    when: 컴포넌트 구조/접근성/SVG 아이콘 변경
+    open:
+      - playbook/en/frontend/stacks/nextjs.md
+      - playbook/en/frontend/ui/component.md
+      - playbook/en/frontend/ui/accessibility.md
+      - playbook/en/frontend/ui/svg-icon.md
+    thenRead:
+      - playbook/en/core/naming.md
+      - playbook/en/core/code-style.md
+  - id: frontend-style-theme-change
+    when: Tailwind/CSS Module/테마 변경
+    open:
+      - playbook/en/frontend/stacks/nextjs.md
+      - playbook/en/frontend/styling/tailwindcss.md
+      - playbook/en/frontend/styling/css-module.md
+      - playbook/en/frontend/styling/theme.md
+    thenRead:
+      - playbook/en/core/performance.md
+  - id: frontend-data-fetch-change
+    when: React Query 캐시/동기화/로딩 전략 변경
+    open:
+      - playbook/en/frontend/stacks/nextjs.md
+      - playbook/en/frontend/data/react-query.md
+    thenRead:
+      - playbook/en/core/error-handling.md
+      - playbook/en/security.md
+      - playbook/en/testing.md
+  - id: i18n-seo-change
+    when: 번역 키/locale/SEO 메타데이터 변경
+    open:
+      - playbook/en/frontend/content/i18n.md
+      - playbook/en/frontend/content/seo.md
+      - playbook/en/security.md
+      - playbook/en/testing.md
+    thenRead:
+      - playbook/en/core/naming.md
+  - id: security-testing-policy-change
+    when: 보안 정책/테스트 기준 변경
+    open:
+      - playbook/en/security.md
+      - playbook/en/testing.md
+    thenRead:
+      - playbook/en/backend/spring.md
+      - playbook/en/frontend/stacks/nextjs.md
+  - id: infra-deployment-change
+    when: 배포/인프라/런타임 설정 변경
+    open:
+      - design/architecture.md
+      - playbook/en/infra/aws.md
+    thenRead:
+      - playbook/en/security.md
+      - playbook/en/testing.md
+files:
+  - playbook/en/core/readability.md
+  - playbook/en/core/code-style.md
+  - playbook/en/core/code-hygiene.md
+  - playbook/en/core/naming.md
+  - playbook/en/core/performance.md
+  - playbook/en/core/error-handling.md
+  - playbook/en/core/data-design.md
+  - playbook/en/frontend/styling/tailwindcss.md
+  - playbook/en/frontend/styling/css-module.md
+  - playbook/en/frontend/styling/theme.md
+  - playbook/en/frontend/ui/component.md
+  - playbook/en/frontend/ui/accessibility.md
+  - playbook/en/frontend/ui/svg-icon.md
+  - playbook/en/frontend/data/react-query.md
+  - playbook/en/frontend/content/i18n.md
+  - playbook/en/frontend/content/seo.md
+  - playbook/en/frontend/stacks/nextjs.md
+  - playbook/en/backend/spring.md
+  - playbook/en/database/redis.md
+  - playbook/en/infra/aws.md
+  - playbook/en/security.md
+  - playbook/en/testing.md
+  - playbook/ko/core/readability.md
+  - playbook/ko/core/code-style.md
+  - playbook/ko/core/code-hygiene.md
+  - playbook/ko/core/naming.md
+  - playbook/ko/core/performance.md
+  - playbook/ko/core/error-handling.md
+  - playbook/ko/core/data-design.md
+  - playbook/ko/frontend/styling/tailwindcss.md
+  - playbook/ko/frontend/styling/css-module.md
+  - playbook/ko/frontend/styling/theme.md
+  - playbook/ko/frontend/ui/component.md
+  - playbook/ko/frontend/ui/accessibility.md
+  - playbook/ko/frontend/ui/svg-icon.md
+  - playbook/ko/frontend/data/react-query.md
+  - playbook/ko/frontend/content/i18n.md
+  - playbook/ko/frontend/content/seo.md
+  - playbook/ko/frontend/stacks/nextjs.md
+  - playbook/ko/backend/spring.md
+  - playbook/ko/database/redis.md
+  - playbook/ko/infra/aws.md
+  - playbook/ko/security.md
+  - playbook/ko/testing.md
+  - design/design.md
+  - design/erd.md
+  - design/architecture.md
+  - design/api-spec.md
+  - AGENTS.md
+  - CLAUDE.md
+  - .cursor/rules/mykit-workflow.mdc
+  - EXAMPLES.md

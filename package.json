@@ -1,0 +1,18 @@
+{
+  "name": "mykit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "mykit": "./bin/mykit.js"
+  },
+  "scripts": {
+    "mykit": "node ./bin/mykit.js",
+    "check": "node ./bin/mykit.js init --dry-run --frontend nextjs --backend nestjs --db postgres --infra vercel --doc security --doc testing --ai all"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.10.1",
+    "is": "^3.3.2",
+    "yaml": "^2.8.1"
+  }
+}
