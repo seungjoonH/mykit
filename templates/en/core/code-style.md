@@ -56,7 +56,7 @@ function handleSubmit(value: string | null) {
     save(value);
   }
   else {
-    asdfasdf;
+    doSomething();
   }
 }
 

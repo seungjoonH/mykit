@@ -275,7 +275,6 @@ AGENTS.md
 CLAUDE.md
 EXAMPLES.md
 .cursor/rules/mykit-workflow.mdc
-.cursor/rules/karpathy-guidelines.mdc
 design/design.md
 design/architecture.md
 design/erd.md
@@ -285,10 +284,53 @@ playbook/mykit.selection.yaml
 playbook/**/*.md
 ```
 
+<br />
+
+### 변경 이력
+
+[CHANGELOG.md](CHANGELOG.md)에서 버전별 변경 사항을 확인할 수 있습니다.
+
+<br clear="both" />
+<br clear="both" />
+<br clear="both" />
+
+## GitHub에서 적용
+
+<br clear="both" />
+
+### 1. 다른 프로젝트에서 바로 실행
+
+```sh
+npx github:seungjoonH/mykit init
+```
+
+<br />
+
+### 2. 선택값을 인자로 전달
+
+```sh
+npx github:seungjoonH/mykit init --frontend nextjs --backend nestjs --db postgres --infra vercel --doc security --doc testing --ai all
+```
+
+<br />
+
+### 3. 적용 전 드라이런 확인
+
+```sh
+npx github:seungjoonH/mykit init --dry-run --frontend nextjs --backend nestjs --db postgres --infra vercel --doc security --doc testing --ai all
+```
+
+<br />
+
+### 4. Claude Code skill로 사용
+
+GitHub 저장소를 Claude Code plugin으로 설치하면 `skills/mykit`의 action 문서를 사용할 수 있습니다. <br />
+에이전트는 요청을 먼저 프로젝트 관례에 맞춰 해석하고, 필요한 경우 구현 preview를 보여준 뒤 컴포넌트, API, 데이터 모델, 테스트, 리팩토링, 보안 리뷰 작업으로 이어갑니다.
+
 <br clear="both" />
 <br clear="both" />
 <br clear="both" />
 
 ## License
 
-ISC License · mykit
+MIT License · mykit

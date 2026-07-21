@@ -56,10 +56,6 @@ function aiTemplateMap(key, autoCommit = true) {
         from: `templates/ai/cursor-rules/${workflowTemplate}`,
         to: ".cursor/rules/mykit-workflow.mdc",
       },
-      {
-        from: "templates/ai/cursor-rules/karpathy-guidelines.mdc",
-        to: ".cursor/rules/karpathy-guidelines.mdc",
-      },
     ];
   }
   throw new Error(`Unknown AI guide key: ${key}`);
@@ -318,7 +314,7 @@ export async function generatePlaybook({ cwd, selection, dryRun = false }) {
   }
 
   const index = {
-    version: "0.1.0",
+    version: "0.1.1",
     generatedAt: new Date().toISOString(),
     selection,
     catalog: buildCatalog(selection),
