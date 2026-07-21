@@ -1,27 +1,28 @@
 {
-  "name": "karpathy-skills",
-  "id": "karpathy-skills",
+  "name": "mykit",
+  "id": "mykit",
   "owner": {
-    "name": "forrestchang"
+    "name": "seungjoonH"
   },
   "metadata": {
-    "description": "Behavioral guidelines to reduce common LLM coding mistakes, derived from Andrej Karpathy's observations",
-    "version": "1.0.0"
+    "description": "Personal Claude Code skill toolkit: project scaffolding + behavioral guidelines",
+    "version": "0.1.0"
   },
   "plugins": [
     {
-      "name": "andrej-karpathy-skills",
+      "name": "mykit",
       "source": "./",
-      "description": "Behavioral guidelines to reduce common LLM coding mistakes: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution",
-      "version": "1.0.0",
+      "description": "Behavioral guidelines and project-scaffolding for Claude Code: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution",
+      "version": "0.1.0",
       "author": {
-        "name": "forrestchang"
+        "name": "seungjoonH"
       },
       "keywords": [
         "guidelines",
         "best-practices",
         "coding",
-        "karpathy"
+        "scaffolding",
+        "mykit"
       ],
       "category": "workflow"
     }
