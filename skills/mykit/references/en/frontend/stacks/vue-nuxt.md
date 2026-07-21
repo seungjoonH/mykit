@@ -1,0 +1,3 @@
+# Vue Nuxt Stack
+
+_Not filled in yet — will be filled in as real friction shows up while using this stack._
