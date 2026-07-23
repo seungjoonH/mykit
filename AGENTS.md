@@ -155,17 +155,14 @@ Final responses should include:
 
 Do not write "done", "fixed", or "works" unless that claim is backed by a concrete check.
 
-## 12. Semantic Commits
+## 12. Commits — Explicit Approval Only
 
-**Commit when one logical change is complete. Don't wait for the user to ask.**
+**Never commit unless the user explicitly asks.**
 
-- The test: "Can I describe this commit in one sentence?" If yes, commit. If no, the changes are still mixed - split them.
-- Good: "auth 미들웨어 추가". Bad: "auth 추가하고 UI도 고치고 버그도 수정" (split into 3).
-- Don't accumulate unrelated edits and lose the ability to roll back individually.
-- Don't commit just to commit - meaningful units only.
-- If the environment or user workflow does not allow commits, keep changes uncommitted and clearly summarize them.
-
-Note: For solo prototypes or throwaway scripts, group commits loosely if it slows you down. The point is reversibility, not ceremony.
+- Do not run `git add`, `git commit`, or `git push` without a direct request from the user.
+- You may suggest a commit message or show what would be staged, but do not finalize without approval.
+- When the user does ask to commit: use semantic conventions — one logical change per commit, clear message.
+- If changes accumulate across multiple topics, flag it — don't merge them silently into one commit.
 
 ## 13. Read Errors, Don't Guess
 
