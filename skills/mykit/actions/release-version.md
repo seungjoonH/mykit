@@ -32,6 +32,9 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
 - 현재 브랜치와 `git status`로 `main`/`develop` 두 브랜치가 모두 clean한지.
 - `develop`이 `main`보다 앞서 있는지 (`git log main..develop`). 앞서 있지 않으면 릴리즈할
   변경이 없다는 뜻이므로 사용자에게 확인한다.
+- `git log develop..main`으로 `main`에만 있고 `develop`에는 없는 커밋을 확인한다. 하나라도
+  있으면 지난 릴리즈의 `develop` 병합 단계가 누락된 것이다. 이 경우 `package.json` 등 버전
+  SOT 값이 두 브랜치에서 서로 다를 수 있다.
 - 패키지 매니저. `package-lock.json` → npm, `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn.
 - `package.json`의 현재 `"version"` 값.
 - 같은 버전 문자열을 `"version"` 필드로 가진 다른 매니페스트 (`.claude-plugin/plugin.json`,
@@ -47,12 +50,35 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
 
 릴리즈 이력은 되돌리기 어렵기 때문에 아래 각 단계는 항상 확인받는다.
 
+- `develop`이 `main`보다 뒤처져 있어 `main`→`develop` 동기화 병합이 필요할 때, 그 병합 실행 전.
 - squash merge 실행 전 (버전 종류와 대상 커밋 확정).
 - 버전 SOT 파일 목록과 CHANGELOG 초안 확정 전.
 - 최종 release 커밋 실행 전.
 - 태그 생성 전.
 
 ## Confirmation Prompt
+
+`main`이 `develop`보다 앞서 있을 때(지난 릴리즈 병합 누락)는 릴리즈를 시작하기 전에 먼저
+아래처럼 동기화 여부를 확인한다.
+
+```text
+main·develop 관계에 어긋나는 부분이 있어 확인이 필요합니다.
+
+- main에는 release: v0.1.1 커밋이 있는데 develop에는 이 커밋이 없습니다 (지난 릴리즈 때
+  main을 develop으로 병합하는 단계가 누락된 것으로 보입니다).
+- 그 결과 main의 package.json은 0.1.1인데 develop은 0.1.0으로 되돌아가 있는 상태입니다.
+
+이 상태로 develop에서 release를 진행하면 v0.1.1 관련 변경 이력이 꼬일 수 있습니다.
+먼저 git switch develop && git merge main으로 동기화한 뒤 릴리즈를 진행하려고 합니다.
+괜찮을까요?
+
+어떻게 진행할까요?
+- 동기화 후 진행.
+- 동기화만 하고 릴리즈는 나중에.
+- 더 자세히 보기.
+```
+
+동기화가 끝나면(또는 애초에 필요 없었다면) 아래처럼 통상적인 릴리즈 확인으로 넘어간다.
 
 ```text
 릴리즈를 이렇게 진행하려고 합니다. 괜찮을까요?
@@ -109,7 +135,10 @@ v0.2.0 (annotated)
 ## Execution
 
 1. **Pre-flight**: `main`/`develop` clean 여부, `develop`이 `main`보다 앞서 있는지 확인한다.
-   문제가 있으면 멈추고 보고한다.
+   `git log develop..main`이 비어 있지 않으면(지난 릴리즈 병합 누락) 위 Confirmation Prompt로
+   먼저 보고하고, 승인받으면 `git switch develop && git merge main`으로 동기화한다. 충돌 시
+   멈추고 사용자에게 해결을 요청한다. 동기화 후에도 clean하지 않거나 `develop`이 `main`보다
+   앞서 있지 않으면 멈추고 보고한다.
 2. `git log main..develop --oneline`으로 대상 커밋을 읽는다. Conventional 스타일이면
    `feat`→minor, `fix`/`chore`/`docs`→patch, 파괴적 변경 표시(`BREAKING CHANGE`, 명시적 호환성
    깨짐)→major로 판단해 **주 버전(Major, X.0.0) — 하위 호환되지 않는 변경 / 부 버전(Minor,
