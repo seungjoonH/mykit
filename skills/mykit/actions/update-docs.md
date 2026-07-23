@@ -1,7 +1,7 @@
 # Update Docs
 
 README, API 문서, playbook, ADR, 사용자 가이드, 주석성 문서, changelog를 작성하거나 수정할 때
-사용한다.
+사용한다. CHANGELOG 항목 작성은 `actions/release-version.md`의 "CHANGELOG 형식"을 따른다.
 
 ## Project Scan
 
