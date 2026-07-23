@@ -1,6 +1,6 @@
 {
   "name": "mykit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate stack-aware playbooks, AI guide files, and mykit Claude Code skills for a project.",
   "license": "MIT",
   "type": "module",
@@ -14,6 +14,7 @@
     "skills/mykit/",
     ".claude-plugin/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {

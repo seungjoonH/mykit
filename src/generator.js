@@ -314,7 +314,7 @@ export async function generatePlaybook({ cwd, selection, dryRun = false }) {
   }
 
   const index = {
-    version: "0.1.0",
+    version: "0.1.1",
     generatedAt: new Date().toISOString(),
     selection,
     catalog: buildCatalog(selection),
