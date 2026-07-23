@@ -11,4 +11,4 @@ these lines aren't enough.
 5. Read the actual error/log line before fixing it — don't pattern-match from memory.
 6. Korean output ends sentences with `.`, `?`, or `!` — never `:`.
 7. New source files start with a one-line Korean comment describing their role.
-8. Commit each complete logical change as its own commit — don't wait to be asked.
+8. Never commit unless the user explicitly asks — you may suggest a message, but don't finalize without approval.
