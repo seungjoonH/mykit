@@ -122,17 +122,7 @@ When creating a new source file:
 
 Why: agents read files selectively, not whole codebases. A one-line Korean header gives instant context so the next session can navigate without re-reading everything.
 
-## 9. Plan + Checklist + Context Notes
-
-**Before any non-trivial task, produce three artifacts. Don't start coding without them.**
-
-- **Plan** - what we're building and why.
-- **Checklist** (`checklist.md`) - concrete tasks as checkboxes. Tick as you go.
-- **Context Notes** (`context-notes.md`) - decisions made during the work and the reasoning behind them. Append continuously.
-
-If the user gives only a plan and asks you to start coding, stop and ask: "Should I create the checklist and context notes first?" The next session needs the notes to pick up without re-deriving every decision.
-
-## 10. Run Tests Before Marking Complete
+## 9. Run Tests Before Marking Complete
 
 **If you touched code, run the relevant tests before saying "done".**
 
@@ -144,7 +134,7 @@ If the user gives only a plan and asks you to start coding, stop and ask: "Shoul
 
 This is the step coding agents skip most often. Treat it as non-negotiable.
 
-## 11. Verification Evidence In The Final Reply
+## 10. Verification Evidence In The Final Reply
 
 **Report what you actually verified, not what you intended to verify.**
 
@@ -155,7 +145,7 @@ Final responses should include:
 
 Do not write "done", "fixed", or "works" unless that claim is backed by a concrete check.
 
-## 12. Semantic Commits
+## 11. Semantic Commits
 
 **Commit when one logical change is complete. Don't wait for the user to ask.**
 
@@ -167,7 +157,7 @@ Do not write "done", "fixed", or "works" unless that claim is backed by a concre
 
 Note: For solo prototypes or throwaway scripts, group commits loosely if it slows you down. The point is reversibility, not ceremony.
 
-## 13. Read Errors, Don't Guess
+## 12. Read Errors, Don't Guess
 
 **Read the actual error/log line. Don't pattern-match from memory.**
 
