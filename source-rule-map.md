@@ -11,7 +11,7 @@ This file maps `code-quality.md` into reusable mykit playbook modules.
 - `6.1` -> `core/performance.md`.
 - `7` -> `core/error-handling.md`.
 - `9` -> `core/data-design.md`.
-- `11` -> checklist hints embedded into `PLAYBOOK.md`.
+- `11` -> excluded (project-specific checklist hints; not used in mykit).
 
 ## Frontend
 

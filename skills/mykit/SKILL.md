@@ -1,6 +1,6 @@
 ---
 name: mykit
-description: seungjoonH's personal engineering playbook and project-scaffolding toolkit. Consult this whenever writing, reviewing, or refactoring code for behavioral discipline beyond the baseline rules in CLAUDE.md/AGENTS.md — surfacing assumptions, staying simple, making surgical changes, defining verifiable goals, Korean-output conventions, commit hygiene, and reading errors instead of guessing. Also use this to scaffold a new project (stack-specific CLAUDE.md/AGENTS.md/playbook docs) whenever the user asks to set up, bootstrap, or initialize a project's coding guidelines, or says "mykit init".
+description: seungjoonH's personal engineering playbook and project-scaffolding toolkit. Consult this whenever writing, reviewing, or refactoring code for behavioral discipline beyond the baseline rules in CLAUDE.md/AGENTS.md — Korean-output conventions, new-file headers, commit hygiene, and reading errors instead of guessing. Pairs with karpathy-guidelines (Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution), which this skill no longer duplicates. Also use this to scaffold a new project (stack-specific CLAUDE.md/AGENTS.md/playbook docs) whenever the user asks to set up, bootstrap, or initialize a project's coding guidelines, or says "mykit init".
 license: MIT
 ---
 
@@ -15,63 +15,10 @@ license: MIT
 
 ## 행동 원칙
 
-### 1. Think Before Coding
+Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution은
+karpathy-guidelines가 담당한다. mykit은 그 위에 다음 원칙만 추가로 얹는다.
 
-**추측하지 않는다. 헷갈리는 걸 숨기지 않는다. 트레이드오프를 드러낸다.**
-
-구현 전에.
-- 가정을 명시적으로 말한다. 확신이 없으면 묻는다.
-- 여러 해석이 가능하면 제시한다 — 조용히 하나를 골라잡지 않는다.
-- 더 단순한 방법이 있으면 말한다. 필요하면 되받아친다.
-- 뭔가 불명확하면 멈춘다. 뭐가 헷갈리는지 이름 붙인다. 묻는다.
-
-### 2. Simplicity First
-
-**문제를 푸는 최소한의 코드. 추측성 코드는 없다.**
-
-- 요청받지 않은 기능은 넣지 않는다.
-- 한 번만 쓰는 코드에 추상화를 만들지 않는다.
-- 요청받지 않은 "유연성"이나 "설정 가능성"은 넣지 않는다.
-- 일어날 수 없는 시나리오에 대한 에러 처리는 하지 않는다.
-- 200줄을 썼는데 50줄로 될 것 같으면 다시 쓴다.
-
-스스로에게 묻는다: "시니어 엔지니어가 이걸 보면 과하다고 할까?" 그렇다면 단순화한다.
-
-### 3. Surgical Changes
-
-**꼭 필요한 것만 건드린다. 내가 어지른 것만 치운다.**
-
-기존 코드를 고칠 때.
-- 인접한 코드/주석/포맷팅을 "개선"하지 않는다.
-- 망가지지 않은 걸 리팩터링하지 않는다.
-- 스타일이 다르더라도 기존 스타일에 맞춘다.
-- 관련 없는 죽은 코드를 발견하면 언급만 한다 — 지우지 않는다.
-
-내 변경이 고아를 만들면.
-- 내 변경 때문에 안 쓰이게 된 import/변수/함수는 제거한다.
-- 원래 있던 죽은 코드는 요청받지 않으면 지우지 않는다.
-
-테스트 기준은 바뀐 줄 하나하나가 사용자 요청으로 직접 추적되는 것이다.
-
-### 4. Goal-Driven Execution
-
-**성공 기준을 정의한다. 검증될 때까지 반복한다.**
-
-작업을 검증 가능한 목표로 바꾼다.
-- "검증 추가" → "잘못된 입력에 대한 테스트를 쓰고, 통과시킨다"
-- "버그 고쳐줘" → "버그를 재현하는 테스트를 쓰고, 통과시킨다"
-- "X 리팩터링" → "리팩터링 전후로 테스트가 통과하는지 확인한다"
-
-여러 단계짜리 작업이면 간단한 계획을 말한다.
-```
-1. [단계] → 검증: [확인할 것]
-2. [단계] → 검증: [확인할 것]
-3. [단계] → 검증: [확인할 것]
-```
-
-성공 기준이 명확하면 혼자 반복할 수 있다. 기준이 약하면("되게 해줘") 계속 되물어야 한다.
-
-### 5. 콜론으로 문장을 끝내지 않는다 (한국어 출력)
+### 1. 콜론으로 문장을 끝내지 않는다 (한국어 출력)
 
 **한국어 문장은 콜론이 아니라 마침표로 끝낸다.**
 
@@ -81,7 +28,7 @@ license: MIT
 - 테스트: 모든 한국어 문장 종결부는 `.`, `?`, `!` 중 하나여야 한다 — `:`이 아니다.
 - 코드, 키-값 쌍, 라벨 안의 콜론은 괜찮다. 문장 종결자로만 안 된다.
 
-### 6. 새 파일 첫 줄에 한국어 주석
+### 2. 새 파일 첫 줄에 한국어 주석
 
 **새로 만드는 소스 파일 첫 줄에 그 파일의 역할을 한 줄 한국어 주석으로 남긴다.**
 
@@ -96,19 +43,7 @@ license: MIT
 헤더가 있으면 다음 세션(사람이든 에이전트든)이 전체를 다시 읽지 않고도 즉시 맥락을
 파악할 수 있다.
 
-### 7. Plan + Checklist + Context Notes
-
-**중요한 작업 전엔 세 가지 산출물을 먼저 만든다. 없이 코딩부터 시작하지 않는다.**
-
-- **Plan** — 뭘 왜 만드는지.
-- **Checklist**(`checklist.md`) — 체크박스로 된 구체적 작업 목록. 진행하며 체크한다.
-- **Context Notes**(`context-notes.md`) — 작업 중 내린 결정과 그 이유. 계속 append한다.
-
-사용자가 계획만 주고 코딩을 시작하라고 하면 멈추고 묻는다: "체크리스트랑 컨텍스트
-노트부터 만들까요?" 다음 세션(나 자신이든 다른 사람이든)이 모든 결정을 다시 추론하지
-않고도 이어받으려면 이 노트가 필요하다.
-
-### 8. 완료 선언 전에 테스트를 돌린다
+### 3. 완료 선언 전에 테스트를 돌린다
 
 **코드를 건드렸으면 "완료"라고 말하기 전에 테스트를 돌린다.**
 
@@ -119,7 +54,7 @@ license: MIT
 
 LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 
-### 9. 커밋은 명시적 승인이 있을 때만
+### 4. 커밋은 명시적 승인이 있을 때만
 
 **사용자가 명시적으로 요청하기 전엔 절대 커밋하지 않는다.**
 
@@ -128,7 +63,7 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 - 사용자가 커밋을 요청하면 semantic 규칙을 따른다 — 논리적 변경 하나당 커밋 하나, 명확한 메시지.
 - 여러 주제의 변경이 섞여 쌓였다면 알린다 — 조용히 하나로 합치지 않는다.
 
-### 10. 에러를 읽는다, 추측하지 않는다
+### 5. 에러를 읽는다, 추측하지 않는다
 
 **실제 에러/로그 줄을 읽는다. 기억으로 패턴 매칭하지 않는다.**
 
@@ -140,11 +75,6 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 
 "테스트 돌리기" 다음으로 LLM이 가장 자주 건너뛰는 단계다. 에러 키워드로 짐작하고
 가장 최근에 봤던 패턴을 적용한다. 그렇게 한 줄짜리 버그가 세 파일짜리 리팩터링이 된다.
-
----
-
-**이 원칙들이 잘 작동하고 있다는 신호**: diff에 불필요한 변경이 줄어든다, 과설계 때문에
-다시 쓰는 일이 줄어든다, 실수 이후가 아니라 구현 전에 명확화 질문이 나온다.
 
 ## 새 프로젝트 세팅 (스캐폴딩)
 
@@ -192,22 +122,14 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 
 | 요청 | 먼저 열 문서 |
 |---|---|
-| 도메인 기능/사용자 기능/프로젝트 기능 추가. 예: 알림, 검색, 북마크, 관리자 초대, 장바구니 | `actions/add-feature.md` |
 | 컴포넌트/폼/모달/카드/필터/리스트/패널/툴바/컨트롤 추가 | `actions/add-component.md` |
-| 페이지/라우트/화면/섹션/navigation target 추가 | `actions/add-page.md` |
-| API/endpoint/controller/handler/resolver/procedure 추가 | `actions/add-api-endpoint.md` |
-| DB schema/entity/model/migration/index/relation 변경 | `actions/change-data-model.md` |
-| 테스트 추가/보강/회귀 테스트/접근성 테스트/성능 테스트 | `actions/test-code.md` |
 | 코드 스타일 점검/mykit style/lint 전 리뷰/PR 전 스타일 확인 | `actions/review-code-style.md` |
-| 리팩터링/구조 정리/중복 제거/책임 분리 | `actions/refactor-code.md` |
-| 버그/에러/이상 동작/flaky behavior 수정 | `actions/fix-bug.md` |
-| 성능 개선/최적화/느린 렌더링/느린 query 개선 | `actions/improve-performance.md` |
-| 보안 검토/auth/permission/secret/rate limit 점검 | `actions/review-security.md` |
-| 라이브러리/SDK/외부 API/UI kit/payment/auth provider 연동 | `actions/integrate-library.md` |
-| cron/queue/worker/scheduler/batch/background job 추가 | `actions/add-background-job.md` |
-| PR/diff/branch/staged changes 리뷰 | `actions/review-pr.md` |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
+
+위 표에 없는 개발 작업(기능 추가, 리팩터링, 버그 수정, 테스트, 보안 검토, 라이브러리
+연동, PR 리뷰, API/DB/백그라운드 작업 등)은 전용 action 문서 없이 karpathy-guidelines의
+원칙과 Superpowers 같은 방법론 스킬, 그리고 이 SKILL.md의 나머지 원칙을 바로 적용한다.
 
 사용자가 `mykit add-component`처럼 명시적으로 말하지 않아도 자연어 요청을 보고 적절한
 액션을 고른다. 액션 문서가 안내하는 범위 안에서 필요한 철학 문서만 추가로 읽는다. 예를
@@ -232,19 +154,16 @@ preview 확인을 받는다. typo, 누락 import 제거, 명백한 lint/type err
 | 변경 종류 | 먼저 열 문서 |
 |---|---|
 | 요구사항/유저 플로우/범위 변경 | `references/en/core/readability.md`, `references/en/core/code-style.md` |
-| API 스펙/에러 포맷/요청 응답 스키마 변경 | `actions/add-api-endpoint.md`, `references/en/backend/<스택>.md`, `references/en/core/error-handling.md`, `references/en/security.md`, `references/en/testing.md` |
-| 엔터티/테이블/인덱스/관계 변경 | `actions/change-data-model.md`, `references/en/core/data-design.md`, `references/en/database/<DB>.md`, `references/en/backend/<스택>.md` |
+| API 스펙/에러 포맷/요청 응답 스키마 변경 | `references/en/backend/<스택>.md`, `references/en/core/error-handling.md`, `references/en/security.md`, `references/en/testing.md` |
+| 엔터티/테이블/인덱스/관계 변경 | `references/en/core/data-design.md`, `references/en/database/<DB>.md`, `references/en/backend/<스택>.md` |
 | 컴포넌트 구조/접근성/SVG 아이콘 변경 | `actions/add-component.md`, `references/philosophy/component-layers.md`, `references/philosophy/accessibility.md`, `references/en/frontend/stacks/<스택>.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/accessibility.md` |
 | Tailwind/CSS Module/테마 변경 | `references/en/frontend/styling/<css>.md`, `references/en/frontend/styling/theme.md` |
 | React Query 캐시/동기화/로딩 전략 변경 | `references/en/frontend/data/react-query.md`, `references/en/core/error-handling.md` |
 | 번역 키/locale/SEO 메타데이터 변경 | `references/philosophy/i18n.md`, `references/en/frontend/content/i18n.md`, `references/en/frontend/content/seo.md` |
-| 보안 정책/테스트 기준 변경 | `actions/review-security.md`, `actions/test-code.md`, `references/en/security.md`, `references/en/testing.md` |
+| 보안 정책/테스트 기준 변경 | `references/en/security.md`, `references/en/testing.md` |
 | 배포/인프라/런타임 설정 변경 | `references/en/infra/<인프라>.md` |
 | 반응형 레이아웃/동작 변경 | `references/philosophy/responsive.md`, `references/en/frontend/styling/<css>.md`, `references/en/frontend/ui/component.md` |
-| 코드 스타일/리팩터링/버그/성능/라이브러리/백그라운드 작업/PR 리뷰/문서 작업 | 해당 `actions/*.md`를 먼저 읽고 필요한 domain reference만 추가로 읽는다 |
+| 코드 스타일/문서 작업 | 해당 `actions/*.md`를 먼저 읽고 필요한 domain reference만 추가로 읽는다 |
 
 한국어로 작업 중이면 같은 경로에서 `en`을 `ko`로 바꿔 읽는다. `<스택>`/`<DB>`/`<css>`/
 `<인프라>`는 실제 프로젝트에서 쓰는 값으로 치환한다(예: `references/en/backend/nestjs.md`).
-
-`references/EXAMPLES.md`에는 위 행동 원칙 각각의 구체적인 Before/After 예시가 있다 —
-원칙 적용 방식이 애매할 때 참고한다.
