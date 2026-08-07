@@ -10,12 +10,14 @@
 - 포커스 가능한 요소에 `aria-hidden`을 주지 않는다.
 - 장식용 아이콘과 시각 보조 래퍼는 `aria-hidden="true"`로 숨긴다.
 - 사용자 조작의 결과가 명확하지 않으면 label에 동작 결과를 포함한다.
+- Unicode 기호, 화살표 문자, emoji, 문자 모양 glyph를 UI icon 대용으로 사용하지 않는다.
 
 ## Interactive Primitive 계약
 
 조작 가능한 primitive는 호출부가 접근성 정보를 빠뜨리기 어렵게 props로 강제한다.
 
 - 아이콘 버튼은 `ariaLabel`을 필수로 둔다.
+- 클릭 동작이 있는 icon은 프로젝트의 `IconButton` contract를 우선하고 accessible name을 제공한다.
 - 토글은 `pressed`와 `aria-pressed`를 연결한다.
 - range/slider는 `ariaLabel`, `ariaValueText`, min/max/now를 제공한다.
 - segmented control, chip select 같은 그룹 선택 UI는 `fieldset`/`legend` 또는 group label을 제공한다.

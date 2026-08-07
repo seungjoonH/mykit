@@ -23,6 +23,10 @@ UI 컴포넌트를 추가하거나 분리할 때 쓰는 범용 계층 모델이�
 
 ## 판단 순서
 
+화면을 조립하기 전에 프로젝트의 color/semantic token, typography, spacing, radius/border,
+surface/elevation, focus, 상태 표현, breakpoint, icon 규칙을 확인한다. 없으면 승인된 디자인에
+필요한 최소 기반부터 정의한다.
+
 1. 같은 UI가 다른 화면에서도 의미 있게 재사용되는지 확인한다.
 2. 사용자 조작이 있으면 `interactive` 또는 그 위 계층으로 둔다.
 3. 도메인 데이터 모델을 직접 안다면 `feature`로 둔다.
@@ -69,6 +73,9 @@ UI 컴포넌트를 추가하거나 분리할 때 쓰는 범용 계층 모델이�
 
 특정 제품의 카드, 주문 상태 패널, 프로젝트 상세 카드처럼 도메인 모델과 문구가 강하게
 묶인 UI는 범용 규칙으로 만들지 않는다. 그런 컴포넌트는 예시로만 언급한다.
+
+모든 SVG를 primitive로 추출하지 않는다. 반복되는 icon contract는 `Icon`으로 통일할 수 있지만,
+화면 고유 illustration이나 의미 있는 SVG는 해당 feature/page가 직접 소유할 수 있다.
 
 ## Props 설계
 
