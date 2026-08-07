@@ -331,8 +331,10 @@ JSX `style` prop에 CSS 속성값(opacity, transform 등)을 직접 넣지 않�
 ### 4.3 컴포넌트 캡슐화
 
 - 컴포넌트는 자신의 스타일을 완전히 소유한다
-- 커스텀 컴포넌트에 `className`·`style` prop을 두지 않는다
+- 컴포넌트 내부의 `className={styles.root}`는 권장되는 내부 클래스 적용이다
+- 커스텀 컴포넌트에 호출자가 내부 디자인을 덮어쓰는 public `className`·`style` prop을 기본적으로 두지 않는다
 - 외부에서 스타일 조정이 필요하면 래퍼 요소에 클래스를 붙인다
+- feature/page는 화면 고유 layout, hierarchy, 밀도와 반응형을 자기 CSS Module로 소유할 수 있다
 
 ```tsx
 // ❌

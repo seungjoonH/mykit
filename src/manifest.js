@@ -10,6 +10,7 @@ export const aiGuides = ["agents", "claude", "cursor-rules", "examples"];
 export const commonFrontendDocs = [
   "frontend/styling/theme",
   "frontend/ui/component",
+  "frontend/ui/screen",
   "frontend/ui/accessibility",
   "frontend/ui/svg-icon",
   "frontend/data/react-query",

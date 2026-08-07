@@ -122,7 +122,8 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 
 | 요청 | 먼저 열 문서 |
 |---|---|
-| 컴포넌트/폼/모달/카드/필터/리스트/패널/툴바/컨트롤 추가 | `actions/add-component.md` |
+| primitive/재사용 컴포넌트/기존 화면의 제한된 UI 조각 추가 | `actions/add-component.md` |
+| 새 화면/route/dashboard/settings/list-detail/form workflow/화면 전체 layout 구현 | `actions/build-screen.md` |
 | 코드 스타일 점검/mykit style/lint 전 리뷰/PR 전 스타일 확인 | `actions/review-code-style.md` |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
@@ -136,6 +137,9 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 들어 UI 컴포넌트 작업은 `references/philosophy/component-layers.md`,
 `references/philosophy/accessibility.md`, `references/philosophy/responsive.md`,
 `references/philosophy/i18n.md`를 선택적으로 참조한다.
+
+화면 작업은 `actions/build-screen.md`를 먼저 읽고 component layers, responsive,
+accessibility, i18n, 프로젝트의 CSS Module 또는 styling 규칙을 필요한 범위에서 함께 읽는다.
 
 모든 액션은 먼저 해당 프로젝트의 관례를 확인한다. framework, package manager, directory
 structure, nearby files, test style, error/i18n/a11y/responsive/security 패턴을 읽고 그
@@ -151,12 +155,21 @@ preview 확인을 받는다. typo, 누락 import 제거, 명백한 lint/type err
 `references/en/`, `references/ko/`에 스택별 상세 지침이 있다. 지금 하려는 변경의 종류에
 따라 아래 표에서 해당하는 파일만 열어본다 — 전체를 순회하지 않는다.
 
+문서 소유 관계는 다음과 같다.
+
+- `skills/mykit/references/`는 에이전트가 작업 중 읽는 상세 행동 규칙이며 canonical source다.
+- `templates/`는 새 프로젝트가 mykit 없이도 이해할 수 있게 생성하는 독립적인 축약 규칙이다.
+- `playbook/`은 generator 산출물이다. 직접 복사해 맞추지 않고 template과 generator를 통해 갱신한다.
+
+상세 reference와 template은 문장 전체가 같을 필요는 없지만 핵심 contract의 의미는 같아야 한다.
+
 | 변경 종류 | 먼저 열 문서 |
 |---|---|
 | 요구사항/유저 플로우/범위 변경 | `references/en/core/readability.md`, `references/en/core/code-style.md` |
 | API 스펙/에러 포맷/요청 응답 스키마 변경 | `references/en/backend/<스택>.md`, `references/en/core/error-handling.md`, `references/en/security.md`, `references/en/testing.md` |
 | 엔터티/테이블/인덱스/관계 변경 | `references/en/core/data-design.md`, `references/en/database/<DB>.md`, `references/en/backend/<스택>.md` |
 | 컴포넌트 구조/접근성/SVG 아이콘 변경 | `actions/add-component.md`, `references/philosophy/component-layers.md`, `references/philosophy/accessibility.md`, `references/en/frontend/stacks/<스택>.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/accessibility.md` |
+| 새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경 | `actions/build-screen.md`, `references/philosophy/component-layers.md`, `references/philosophy/responsive.md`, `references/philosophy/accessibility.md`, `references/philosophy/i18n.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/screen.md`, `references/en/frontend/styling/<css>.md` |
 | Tailwind/CSS Module/테마 변경 | `references/en/frontend/styling/<css>.md`, `references/en/frontend/styling/theme.md` |
 | React Query 캐시/동기화/로딩 전략 변경 | `references/en/frontend/data/react-query.md`, `references/en/core/error-handling.md` |
 | 번역 키/locale/SEO 메타데이터 변경 | `references/philosophy/i18n.md`, `references/en/frontend/content/i18n.md`, `references/en/frontend/content/seo.md` |

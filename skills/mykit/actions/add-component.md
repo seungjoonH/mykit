@@ -1,7 +1,10 @@
 # Add Component
 
-새 UI 컴포넌트, 폼, 모달, 카드, 필터, 리스트, 패널, 툴바, 컨트롤을 추가하거나 기존 UI를
-새 컴포넌트로 분리할 때 사용한다.
+primitive, 재사용 가능한 composed component, 기존 화면 안의 제한된 독립 UI 조각을 추가하거나
+기존 UI를 새 컴포넌트로 분리할 때 사용한다.
+
+route/page, dashboard, settings, list/detail, form workflow, 화면 전체 layout, mock/wireframe/
+screenshot 기반 구현, 여러 feature를 조합하는 작업은 `build-screen.md`로 라우팅한다.
 
 ## 원칙
 
@@ -10,6 +13,7 @@
 - 질문은 가능하면 하나로 끝낸다. 구현에 치명적인 정보만 따로 묻는다.
 - 프로젝트 고유 컴포넌트 이름을 새 프로젝트의 규칙으로 강제하지 않는다.
 - 구현 전 실제 코드와 주변 컴포넌트를 읽고, 기존 디자인 시스템을 우선 재사용한다.
+- 승인된 디자인 요구를 primitive 재사용이나 구현 편의를 이유로 줄이지 않는다.
 
 ## Project Scan
 
@@ -172,6 +176,8 @@ Enter → 기본 form submit 또는 검색 실행
 - `composed`: 여러 primitive를 조합해 재사용 가능한 의미를 만든다. 특정 화면 데이터에는 묶지 않는다.
 - `feature`: 특정 화면, 도메인, 데이터 흐름에 묶인 완성형 UI다.
 - `page`: route-level data, layout composition, metadata, provider 경계를 담당한다.
+
+`feature`나 `page` 전체가 작업 단위라면 이 action에서 계속 구현하지 않고 `build-screen.md`를 따른다.
 
 `IconButton`, `SegmentedButton`, `ChipSelect`, `CodeField`처럼 여러 프로젝트에서 반복되는
 primitive 패턴은 일반화할 수 있다. `ProjectCard`처럼 특정 도메인과 데이터 모델에 강하게

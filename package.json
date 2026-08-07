@@ -1,6 +1,6 @@
 {
   "name": "mykit",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Generate stack-aware playbooks, AI guide files, and mykit Claude Code skills for a project.",
   "license": "MIT",
   "type": "module",
@@ -19,7 +19,8 @@
   ],
   "scripts": {
     "mykit": "node ./bin/mykit.js",
-    "check": "node ./bin/mykit.js init --dry-run --frontend nextjs --backend nestjs --db postgres --infra vercel --doc security --doc testing --ai all"
+    "check": "node ./bin/mykit.js init --dry-run --frontend nextjs --backend nestjs --db postgres --infra vercel --doc security --doc testing --ai all",
+    "test": "node ./scripts/check-ui-contracts.js"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.10.1",
