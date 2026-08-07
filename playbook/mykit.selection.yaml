@@ -1,4 +1,6 @@
+language: en
 frontend: nextjs
+css: css-module
 backend: spring
 db:
   - redis
@@ -9,7 +11,4 @@ docs:
   - testing
 ai:
   - all
-language:
-  default: en
-  include:
-    - ko
+autoCommit: false
