@@ -1,5 +1,11 @@
 # 변경 이력
 
+## 0.1.3 - 2026-08-07
+
+- 컴포넌트 추가/릴리즈/코드 스타일 리뷰/문서 업데이트 네 가지만 남기고 나머지 액션 플레이북과 EXAMPLES.md 정리.
+- 컴포넌트 추가 작업 전 checklist.md/context-notes.md 산출물 요구 절차 제거.
+- 컴포넌트 계층 철학 문서에 layout prop 계약, className/style escape hatch 예시, size/color 토큰 강제, 계층 건너뛰기 금지 규칙, 확장/사용/조합/구체화 관계 어휘, variant named subcomponent 권장 규칙 추가.
+
 ## 0.1.2 - 2026-07-23
 
 - develop→main 릴리즈 절차를 표준화하는 버전 릴리즈(release-version) 액션 플레이북 추가.
