@@ -139,7 +139,7 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 `references/philosophy/i18n.md`를 선택적으로 참조한다.
 
 화면 작업은 `actions/build-screen.md`를 먼저 읽고 component layers, responsive,
-accessibility, i18n, 프로젝트의 CSS Module 또는 styling 규칙을 필요한 범위에서 함께 읽는다.
+accessibility, i18n, user-facing content, 프로젝트의 CSS Module 또는 styling 규칙을 필요한 범위에서 함께 읽는다.
 
 모든 액션은 먼저 해당 프로젝트의 관례를 확인한다. framework, package manager, directory
 structure, nearby files, test style, error/i18n/a11y/responsive/security 패턴을 읽고 그
@@ -169,7 +169,7 @@ preview 확인을 받는다. typo, 누락 import 제거, 명백한 lint/type err
 | API 스펙/에러 포맷/요청 응답 스키마 변경 | `references/en/backend/<스택>.md`, `references/en/core/error-handling.md`, `references/en/security.md`, `references/en/testing.md` |
 | 엔터티/테이블/인덱스/관계 변경 | `references/en/core/data-design.md`, `references/en/database/<DB>.md`, `references/en/backend/<스택>.md` |
 | 컴포넌트 구조/접근성/SVG 아이콘 변경 | `actions/add-component.md`, `references/philosophy/component-layers.md`, `references/philosophy/accessibility.md`, `references/en/frontend/stacks/<스택>.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/accessibility.md` |
-| 새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경 | `actions/build-screen.md`, `references/philosophy/component-layers.md`, `references/philosophy/responsive.md`, `references/philosophy/accessibility.md`, `references/philosophy/i18n.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/screen.md`, `references/en/frontend/styling/<css>.md` |
+| 새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경 | `actions/build-screen.md`, `references/philosophy/component-layers.md`, `references/philosophy/responsive.md`, `references/philosophy/accessibility.md`, `references/philosophy/i18n.md`, `references/philosophy/content.md`, `references/en/frontend/ui/component.md`, `references/en/frontend/ui/screen.md`, `references/en/frontend/content/ui-copy.md`, `references/en/frontend/styling/<css>.md` |
 | Tailwind/CSS Module/테마 변경 | `references/en/frontend/styling/<css>.md`, `references/en/frontend/styling/theme.md` |
 | React Query 캐시/동기화/로딩 전략 변경 | `references/en/frontend/data/react-query.md`, `references/en/core/error-handling.md` |
 | 번역 키/locale/SEO 메타데이터 변경 | `references/philosophy/i18n.md`, `references/en/frontend/content/i18n.md`, `references/en/frontend/content/seo.md` |
