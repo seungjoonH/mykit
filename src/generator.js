@@ -90,6 +90,7 @@ function buildDomainMap(selection) {
       ],
       ui: [
         docPath("frontend/ui/component"),
+        docPath("frontend/ui/screen"),
         docPath("frontend/ui/accessibility"),
         docPath("frontend/ui/svg-icon"),
       ],
@@ -142,6 +143,13 @@ function buildEditRoutes(selection) {
       when: "컴포넌트 구조/접근성/SVG 아이콘 변경",
       open: [domain.frontend.stack, ...domain.frontend.ui],
       thenRead: [domain.core.naming, domain.core.codeStyle],
+    },
+    {
+      id: "frontend-screen-change",
+      action: "build-screen",
+      when: "새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경",
+      open: [domain.frontend.stack, docPath("frontend/ui/screen"), docPath("frontend/ui/component"), ...domain.frontend.styling],
+      thenRead: [docPath("frontend/ui/accessibility"), docPath("frontend/content/i18n")],
     },
     {
       id: "frontend-style-theme-change",
@@ -314,7 +322,7 @@ export async function generatePlaybook({ cwd, selection, dryRun = false }) {
   }
 
   const index = {
-    version: "0.1.1",
+    version: "0.1.2",
     generatedAt: new Date().toISOString(),
     selection,
     catalog: buildCatalog(selection),
