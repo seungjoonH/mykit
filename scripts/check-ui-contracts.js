@@ -1,9 +1,11 @@
 // UI 규칙의 핵심 의미와 생성 결과 드리프트를 검증한다.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { findContentViolations } from "../src/content-checker.js";
 import { generatePlaybook } from "../src/generator.js";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -34,12 +36,14 @@ const languageContracts = {
   en: {
     css: [/internal class assignment/i, /public style escape hatch/i, /features and pages own CSS Modules/i],
     component: [/take priority over primitive reuse/i, /Repeated flex\/grid is a signal/i],
-    screen: [/Visual QA/i, /Functional completion and design completion are separate/i],
+    screen: [/Visual QA/i, /Content QA/i, /Classify visible text/i, /Functional completion and design completion are separate/i],
+    content: [/platform copy/i, /runtime tenant\/user data/i, /Unicode symbols/i, /safety-critical guidance/i],
   },
   ko: {
     css: [/내부 클래스 적용/, /public 스타일 탈출구/, /feature\/page가 화면 고유 layout/],
     component: [/primitive 재사용보다 우선/, /직접 CSS 사용 금지가 아니다/],
-    screen: [/Visual QA/, /기능 완료와 디자인 완료를 별도로 판정/],
+    screen: [/Visual QA/, /Content QA/, /사용자 노출 문구를 플랫폼 카피/, /기능 완료와 디자인 완료를 별도로 판정/],
+    content: [/플랫폼 공통 카피/, /tenant\/user 런타임 데이터/, /Unicode 기호/, /안전에 필요한 설명/],
   },
 };
 
@@ -48,9 +52,11 @@ for (const [language, contracts] of Object.entries(languageContracts)) {
     const css = await read(`${sourceRoot}/${language}/frontend/styling/css-module.md`);
     const component = await read(`${sourceRoot}/${language}/frontend/ui/component.md`);
     const screen = await read(`${sourceRoot}/${language}/frontend/ui/screen.md`);
+    const content = await read(`${sourceRoot}/${language}/frontend/content/ui-copy.md`);
     includesAll(css, contracts.css, `${sourceRoot} ${language} CSS Module`);
     includesAll(component, contracts.component, `${sourceRoot} ${language} component`);
     includesAll(screen, contracts.screen, `${sourceRoot} ${language} screen`);
+    includesAll(content, contracts.content, `${sourceRoot} ${language} UI copy`);
   }
 }
 
@@ -59,7 +65,7 @@ const addComponent = await read("skills/mykit/actions/add-component.md");
 const buildScreen = await read("skills/mykit/actions/build-screen.md");
 includesAll(skill, [/actions\/build-screen\.md/, /references\/en\/frontend\/ui\/screen\.md/], "skill routing");
 includesAll(addComponent, [/build-screen\.md/, /route\/page/], "add-component routing");
-includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /기능 완료와 디자인 완료를 별도로 판정/], "build-screen action");
+includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /Content QA/, /금지 문자열을 자동 검색/, /기능 완료와 디자인 완료를 별도로 판정/], "build-screen action");
 
 const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "mykit-ui-contracts-"));
 try {
@@ -82,6 +88,10 @@ try {
       path.join(outputRoot, "playbook/frontend/ui/screen.md"),
       "utf8",
     );
+    const generatedContent = await fs.readFile(
+      path.join(outputRoot, "playbook/frontend/content/ui-copy.md"),
+      "utf8",
+    );
     const generatedIndex = await fs.readFile(
       path.join(outputRoot, "playbook/PLAYBOOK.index.yaml"),
       "utf8",
@@ -90,8 +100,97 @@ try {
     includesAll(generatedCss, languageContracts[language].css, `generated ${language} CSS Module`);
     includesAll(generatedComponent, languageContracts[language].component, `generated ${language} component`);
     includesAll(generatedScreen, languageContracts[language].screen, `generated ${language} screen`);
-    includesAll(generatedIndex, [/id: frontend-screen-change/, /action: build-screen/, /frontend\/ui\/screen\.md/], `generated ${language} index`);
+    includesAll(generatedContent, languageContracts[language].content, `generated ${language} UI copy`);
+    includesAll(generatedIndex, [/id: frontend-screen-change/, /action: build-screen/, /frontend\/ui\/screen\.md/, /frontend\/content\/ui-copy\.md/], `generated ${language} index`);
   }
+
+  const forwardRoot = path.join(temporaryRoot, "forward-tests");
+  await fs.mkdir(forwardRoot, { recursive: true });
+
+  const platformCopyPath = path.join(forwardRoot, "platform-copy.txt");
+  const contentConfigPath = path.join(forwardRoot, "content-constraints.json");
+  await fs.writeFile(contentConfigPath, JSON.stringify({
+    include: ["platform-copy.txt"],
+    extensions: [".txt"],
+    forbidden: [{ value: "Example Tenant", reason: "Render tenant name from runtime data" }],
+  }), "utf8");
+  await fs.writeFile(platformCopyPath, "Example Tenant workspace management", "utf8");
+  const tenantMixViolations = await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["platform-copy.txt"],
+      extensions: [".txt"],
+      forbidden: [{ value: "Example Tenant", reason: "Render tenant name from runtime data" }],
+    },
+  });
+  assert.equal(tenantMixViolations.length, 1, "forward test must detect fixture tenant data in platform copy");
+  const failedCliCheck = spawnSync(
+    process.execPath,
+    [path.join(repositoryRoot, "bin/check-user-facing-content.js"), "--config", "content-constraints.json"],
+    { cwd: forwardRoot, encoding: "utf8" },
+  );
+  assert.equal(failedCliCheck.status, 1, "content CLI must fail when forbidden user-facing content exists");
+  await fs.writeFile(platformCopyPath, "Workspace management", "utf8");
+  assert.equal((await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["platform-copy.txt"],
+      extensions: [".txt"],
+      forbidden: ["Example Tenant"],
+    },
+  })).length, 0, "forward test must allow neutral platform copy");
+  const passedCliCheck = spawnSync(
+    process.execPath,
+    [path.join(repositoryRoot, "bin/check-user-facing-content.js"), "--config", "content-constraints.json"],
+    { cwd: forwardRoot, encoding: "utf8" },
+  );
+  assert.equal(passedCliCheck.status, 0, "content CLI must pass after fixture tenant data is removed");
+
+  const controlPath = path.join(forwardRoot, "control.tsx");
+  await fs.writeFile(controlPath, "<p>Administrators, reviewers, and operators manage workspaces.</p>\n<button>→</button>", "utf8");
+  const redundantCopyViolations = await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["control.tsx"],
+      extensions: [".tsx"],
+      forbidden: ["Administrators, reviewers, and operators", "→"],
+    },
+  });
+  assert.equal(redundantCopyViolations.length, 2, "forward test must detect redundant role copy and text icons");
+  await fs.writeFile(controlPath, '<IconButton icon="next" ariaLabel="Open next workspace" />', "utf8");
+  assert.equal((await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["control.tsx"],
+      extensions: [".tsx"],
+      forbidden: ["Administrators, reviewers, and operators", "→"],
+    },
+  })).length, 0, "forward test must allow labeled SVG icon controls without redundant copy");
+
+  const fixtureRoot = path.join(forwardRoot, "fixtures");
+  await fs.mkdir(fixtureRoot, { recursive: true });
+  await fs.writeFile(path.join(fixtureRoot, "sample.txt"), "Hidden fixture", "utf8");
+  assert.equal((await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["fixtures"],
+      exclude: ["fixtures"],
+      extensions: [".txt"],
+      forbidden: ["Hidden fixture"],
+    },
+  })).length, 0, "content checker must honor project-configured fixture exclusions");
+
+  const commentedSourcePath = path.join(forwardRoot, "commented-source.ts");
+  await fs.writeFile(commentedSourcePath, '// → developer note\nconst label = "Open";', "utf8");
+  assert.equal((await findContentViolations({
+    root: forwardRoot,
+    config: {
+      include: ["commented-source.ts"],
+      extensions: [".ts"],
+      forbidden: ["→"],
+      ignoreLinePatterns: ["^\\s*//"],
+    },
+  })).length, 0, "content checker must honor project-configured comment exclusions");
 }
 finally {
   assert.equal(path.dirname(temporaryRoot), os.tmpdir());

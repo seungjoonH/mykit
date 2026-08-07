@@ -497,24 +497,28 @@ def sort_scores(scores):
 
 ## 5. Simplicity First for UI
 
-### Example: Removing Design Requirements Is Not Simplification
+### Example: Complete UI Without Leaking Example Content
 
-**User Request:** "Build the institution list from the approved screen spec"
+**User Request:** "Build the workspace list from the approved screen spec"
 
 **❌ What LLMs Do (Incomplete UI)**
 
 ```tsx
-export function InstitutionPage() {
+export function WorkspacePage() {
   return (
     <Stack>
-      <h1>Institutions</h1>
-      <Table rows={institutions} />
+      <h1>Example Workspace operations</h1>
+      <p>Administrators, reviewers, and operators manage every workspace here.</p>
+      <button>→</button>
+      <Table rows={workspaces} />
     </Stack>
   );
 }
 ```
 
 **Problems:**
+- Treats fixture tenant data as shared platform copy and repeats roles without helping the next action.
+- Uses a text glyph as a button icon.
 - Drops the approved navigation, filters, status badges, and empty state.
 - Removes responsive structure to avoid page-specific CSS.
 - Treats primitive reuse and passing functional tests as proof that the screen is complete.
@@ -522,14 +526,15 @@ export function InstitutionPage() {
 **✅ What Should Happen (Smallest Complete Screen)**
 
 ```tsx
-import styles from "./InstitutionPage.module.css";
+import styles from "./WorkspacePage.module.css";
 
-export function InstitutionPage() {
+export function WorkspacePage({ tenantName }: { tenantName: string }) {
   return (
     <main className={styles.root}>
-      <InstitutionHeader />
-      <InstitutionFilters />
-      <InstitutionResults />
+      <WorkspaceHeader tenantName={tenantName} />
+      <WorkspaceFilters />
+      <WorkspaceResults />
+      <IconButton icon="next" ariaLabel="Open next workspace" />
     </main>
   );
 }
@@ -537,7 +542,9 @@ export function InstitutionPage() {
 
 Keep every approved screen requirement, reuse existing primitives inside those regions, and let the page
 own its unique layout and responsive CSS. Verify behavior and compare desktop/mobile rendering with the
-reference. Simplicity means the smallest implementation that satisfies the requirements, not fewer requirements.
+reference. Render tenant names from runtime data, omit descriptions that do not help users, and use SVG icon
+contracts instead of text glyphs. Simplicity means the smallest implementation that satisfies the requirements,
+not fewer requirements.
 
 ---
 

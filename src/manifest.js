@@ -14,6 +14,7 @@ export const commonFrontendDocs = [
   "frontend/ui/accessibility",
   "frontend/ui/svg-icon",
   "frontend/data/react-query",
+  "frontend/content/ui-copy",
   "frontend/content/i18n",
   "frontend/content/seo",
 ];
