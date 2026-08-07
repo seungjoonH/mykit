@@ -495,12 +495,59 @@ def sort_scores(scores):
 
 ---
 
+## 5. Simplicity First for UI
+
+### Example: Removing Design Requirements Is Not Simplification
+
+**User Request:** "Build the institution list from the approved screen spec"
+
+**❌ What LLMs Do (Incomplete UI)**
+
+```tsx
+export function InstitutionPage() {
+  return (
+    <Stack>
+      <h1>Institutions</h1>
+      <Table rows={institutions} />
+    </Stack>
+  );
+}
+```
+
+**Problems:**
+- Drops the approved navigation, filters, status badges, and empty state.
+- Removes responsive structure to avoid page-specific CSS.
+- Treats primitive reuse and passing functional tests as proof that the screen is complete.
+
+**✅ What Should Happen (Smallest Complete Screen)**
+
+```tsx
+import styles from "./InstitutionPage.module.css";
+
+export function InstitutionPage() {
+  return (
+    <main className={styles.root}>
+      <InstitutionHeader />
+      <InstitutionFilters />
+      <InstitutionResults />
+    </main>
+  );
+}
+```
+
+Keep every approved screen requirement, reuse existing primitives inside those regions, and let the page
+own its unique layout and responsive CSS. Verify behavior and compare desktop/mobile rendering with the
+reference. Simplicity means the smallest implementation that satisfies the requirements, not fewer requirements.
+
+---
+
 ## Anti-Patterns Summary
 
 | Principle | Anti-Pattern | Fix |
 |-----------|-------------|-----|
 | Think Before Coding | Silently assumes file format, fields, scope | List assumptions explicitly, ask for clarification |
 | Simplicity First | Strategy pattern for single discount calculation | One function until complexity is actually needed |
+| Simplicity First for UI | Drops approved screen regions to avoid page CSS | Keep requirements and use the smallest complete composition |
 | Surgical Changes | Reformats quotes, adds type hints while fixing bug | Only change lines that fix the reported issue |
 | Goal-Driven | "I'll review and improve the code" | "Write test for bug X → make it pass → verify no regressions" |
 
