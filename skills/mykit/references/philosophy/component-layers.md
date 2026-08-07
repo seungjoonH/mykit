@@ -3,6 +3,13 @@
 UI 컴포넌트를 추가하거나 분리할 때 쓰는 범용 계층 모델이다. 프로젝트마다 이름은 달라도
 책임 경계는 유지한다.
 
+## 우선순위
+
+- 승인된 디자인, 화면 구조, 상태, 반응형 요구사항은 primitive 재사용과 구현 편의보다 우선한다.
+- primitive 재사용을 이유로 UI 요구사항을 생략하거나 `feature`/`page` 계층을 제거하지 않는다.
+- 승인된 UI 요소나 viewport 대응을 제거하는 것은 단순화가 아니라 scope change다. 사용자 승인을 받는다.
+- primitive가 화면 구조나 반응형 구현을 방해하면 디자인 요구를 버리지 않는다. primitive를 수정하거나 해당 `feature`/`page`가 자체 CSS를 소유하게 한다.
+
 ## 계층
 
 | 계층 | 책임 | 넣지 말 것 |
@@ -42,7 +49,18 @@ UI 컴포넌트를 추가하거나 분리할 때 쓰는 범용 계층 모델이�
 ## Layout 계약
 
 - `layout` 컴포넌트는 배치를 prop으로 표현한다. 이름은 프로젝트마다 다를 수 있지만 `width`(hug/stretch), `direction`, `justify`, `align`, `gap` 같은 축을 prop으로 노출하는 형태가 일반적이다.
-- 화면별 CSS Module에 `display: flex`나 `display: grid`를 반복해서 직접 쓰고 있다면 `layout` 책임이 `feature` 계층으로 새고 있다는 신호다.
+- 화면별 CSS Module에 같은 `display: flex`나 `display: grid` 패턴이 반복되면 `layout` primitive 추출을 검토한다. 이는 직접 CSS 사용 금지가 아니라 책임 누수 가능성을 살피라는 신호다.
+- 화면 고유 grid template, 비대칭 패널, sticky header/sidebar, 반응형 재배치, container query, 도메인별 밀도와 시각적 hierarchy는 `feature`/`page` CSS가 정상적으로 소유할 수 있다.
+- 화면 고유 empty/loading/error/forbidden 표현도 해당 상태를 소유한 `feature`/`page`가 스타일링할 수 있다.
+
+## CSS 소유권
+
+- `layout`은 반복되는 단순 배치, 간격, 정렬 contract를 소유한다.
+- `design`과 `interactive`는 자체 모양, token, interaction state를 소유한다.
+- `composed`는 내부 primitive 조합과 반복되는 의미 단위 구조를 소유한다.
+- `feature`는 도메인 고유 배치, 상태, 밀도, 시각적 위계를 소유한다.
+- `page`는 shell, navigation, 큰 영역 조합과 page-level responsive layout을 소유한다.
+- 각 계층은 필요하면 자기 CSS Module을 import하고 내부에서 module class를 적용한다. primitive 재사용은 화면별 CSS Module을 제거하라는 뜻이 아니다.
 
 ## 일반화 기준
 
@@ -60,7 +78,38 @@ UI 컴포넌트를 추가하거나 분리할 때 쓰는 범용 계층 모델이�
 - variant는 string prop보다 `Component.Variant` 형태의 named subcomponent로 노출하는 편을 권장한다. 예: `Icon.Primary`, `IconButton.Secondary`.
 - size, color처럼 반복 사용되는 값은 지금 값이 하나뿐이어도 px, hex 같은 원시값이 아닌 닫힌 enum이나 토큰으로 받는다.
 - escape hatch를 만들기 전에 기존 계층을 잘못 잡은 것은 아닌지 확인한다.
-- className, style을 그대로 받아 호출부가 내부 스타일을 임의로 덮어쓰게 하는 것이 대표적인 escape hatch다. 노출하기 전에 필요한 값을 이미 있는 prop이나 layout 계층으로 표현할 수 있는지 확인한다.
+- 내부 클래스 적용(`internal class assignment`)인 `className={styles.root}`와 public 스타일 탈출구(`public style escape hatch`)를 구분한다.
+- `className`이나 `style`을 public prop으로 받아 호출부가 내부 스타일을 임의로 덮어쓰게 하는 것이 대표적인 public style escape hatch다. 노출하기 전에 필요한 값을 이미 있는 prop이나 layout 계층으로 표현할 수 있는지 확인한다.
+- public style escape hatch가 정말 필요하면 기본 허용으로 추가하지 않는다. 어떤 스타일을 누가 소유하고 어떤 contract를 보장하는지 명시적으로 검토한다.
+
+```tsx
+// 권장: 컴포넌트가 자기 CSS Module을 내부에 적용한다.
+import styles from "./Card.module.css";
+
+function Card() {
+  return <article className={styles.root} />;
+}
+```
+
+```tsx
+// 기본 비권장: 호출자가 내부 디자인을 덮어쓸 수 있다.
+function Card({ className }: { className?: string }) {
+  return <article className={buildCls(styles.root, className)} />;
+}
+
+function CardWithStyle({ style }: { style?: CSSProperties }) {
+  return <article style={style} />;
+}
+```
+
+## 계층별 완료 조건
+
+- Primitive(`layout`, `design`, `interactive`)는 props contract, 실제로 소유하는 상태, 접근성, token 적용을 확인한다.
+- `composed`는 반복되는 의미 단위와 자신이 소유하는 필요한 상태를 확인한다.
+- `feature`는 도메인 작업 완결성, 화면 고유 hierarchy, 실제 데이터 상태를 확인한다.
+- `page`는 spec/wireframe 구조, shell/navigation, 주요 viewport, 실제 브라우저 visual QA를 확인한다.
+- 모든 계층에 loading/error/empty 상태를 기계적으로 만들지 않는다. 해당 컴포넌트가 실제로 소유하는 상태만 검증한다.
+- 기능이 동작한다는 사실은 화면 디자인이 완료됐다는 증거가 아니다.
 
 ## Hook 경계
 
