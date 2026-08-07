@@ -96,6 +96,7 @@ function buildDomainMap(selection) {
       ],
       data: docPath("frontend/data/react-query"),
       content: [
+        docPath("frontend/content/ui-copy"),
         docPath("frontend/content/i18n"),
         docPath("frontend/content/seo"),
       ],
@@ -149,7 +150,11 @@ function buildEditRoutes(selection) {
       action: "build-screen",
       when: "새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경",
       open: [domain.frontend.stack, docPath("frontend/ui/screen"), docPath("frontend/ui/component"), ...domain.frontend.styling],
-      thenRead: [docPath("frontend/ui/accessibility"), docPath("frontend/content/i18n")],
+      thenRead: [
+        docPath("frontend/ui/accessibility"),
+        docPath("frontend/content/ui-copy"),
+        docPath("frontend/content/i18n"),
+      ],
     },
     {
       id: "frontend-style-theme-change",
@@ -322,7 +327,7 @@ export async function generatePlaybook({ cwd, selection, dryRun = false }) {
   }
 
   const index = {
-    version: "0.1.2",
+    version: "0.1.3",
     generatedAt: new Date().toISOString(),
     selection,
     catalog: buildCatalog(selection),
