@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "mykit": "./bin/mykit.js"
+    "mykit": "./bin/mykit.js",
+    "mykit-content-check": "./bin/check-user-facing-content.js"
   },
   "files": [
     "bin/",
