@@ -12,6 +12,7 @@
 ## Don't
 - Duplicate raw SVG markup in feature components.
 - Mix different symbol sizes or hard-coded fill colors.
+- Use Unicode symbols, arrow characters, emoji, or text glyphs as UI icons.
 
 ## Example
 ```tsx
@@ -31,6 +32,8 @@ const Icon = memo(function Icon({ name, size }: IconProps) {
 ## Boundaries
 - `icons.svg` owns symbol source and size consistency.
 - `Icon` component only resolves and renders the symbol.
+- Use the shared `Icon`/`IconButton` contract for repeated icons and interactive icon controls. A one-off illustration or meaningful screen-specific SVG may stay owned by its feature/page instead of becoming a primitive.
+- Decorative icons are hidden from assistive technology. Functional icon controls have accessible names and use a text label when the icon alone is ambiguous.
 
 ## Test Scope
 - Validate consistent `viewBox` for new symbols.

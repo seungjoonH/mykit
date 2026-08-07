@@ -12,6 +12,7 @@
 ## Don't
 - 컴포넌트마다 개별 SVG 마크업을 복사해서 넣지 않는다.
 - 심볼마다 제각각 `viewBox`/색상값을 사용하지 않는다.
+- Unicode 기호, 화살표 문자, emoji, 문자 glyph를 UI icon으로 사용하지 않는다.
 
 ## 예시
 ```tsx
@@ -31,6 +32,8 @@ const Icon = memo(function Icon({ name, size }: IconProps) {
 ## 경계
 - `icons.svg`는 심볼 원본과 크기 규칙을 소유한다.
 - `Icon` 컴포넌트는 심볼 선택/렌더링만 담당한다.
+- 반복 icon과 상호작용 icon control은 공통 `Icon`/`IconButton` contract를 사용한다. 일회성 illustration이나 화면 고유 의미의 SVG는 primitive로 만들지 않고 feature/page가 소유할 수 있다.
+- 장식 icon은 보조 기술에서 숨긴다. 기능 icon control에는 accessible name을 제공하고 icon만으로 의미가 모호하면 text label을 함께 사용한다.
 
 ## 테스트 범위
 - 신규 심볼 추가 시 `viewBox` 일관성을 검증한다.
