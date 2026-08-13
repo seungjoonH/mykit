@@ -30,8 +30,11 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
 ## Project Scan
 
 - 현재 브랜치와 `git status`로 `main`/`develop` 두 브랜치가 모두 clean한지.
-- `develop`이 `main`보다 앞서 있는지 (`git log main..develop`). 앞서 있지 않으면 릴리즈할
-  변경이 없다는 뜻이므로 사용자에게 확인한다.
+- `develop`에 마지막 릴리즈 동기화 이후 새 커밋이 있는지. squash merge 이력 때문에
+  `git log main..develop`을 그대로 쓰면 이미 지난 릴리즈에 반영된 옛날 커밋까지 다시
+  잡힐 수 있다 (개별 `develop` 커밋은 `main`의 squash 커밋의 조상이 되지 않기 때문). 아래
+  Execution 2단계의 경계 판별 방식으로 정확한 대상 커밋 유무를 확인한다. 대상이 없으면
+  릴리즈할 변경이 없다는 뜻이므로 사용자에게 확인한다.
 - `git log develop..main`으로 `main`에만 있고 `develop`에는 없는 커밋을 확인한다. 하나라도
   있으면 지난 릴리즈의 `develop` 병합 단계가 누락된 것이다. 이 경우 `package.json` 등 버전
   SOT 값이 두 브랜치에서 서로 다를 수 있다.
@@ -89,7 +92,7 @@ main·develop 관계에 어긋나는 부분이 있어 확인이 필요합니다.
 ```text
 릴리즈를 이렇게 진행하려고 합니다. 괜찮을까요?
 
-대상 커밋 (develop, main보다 5개 앞섬).
+대상 커밋 (마지막 릴리즈 동기화 이후 5개).
 - feat: 패키지 메타데이터 및 라이선스 업데이트
 - docs: MIT 라이선스 추가
 - docs: Claude 가이드라인 간소화 및 오토커밋 제거
@@ -162,9 +165,19 @@ v0.2.0 (annotated)
       확정되면 그 skill로 초안을 제시하고 사용자 확인 후 커밋한다.
    c. 위 과정을 마친 뒤에도 `develop`이 clean하지 않거나 `main`보다 앞서 있지 않으면 멈추고
       보고한다.
-2. `git log main..develop --oneline`으로 대상 커밋을 읽는다. Conventional 스타일이면
-   `feat`→minor, `fix`/`chore`/`docs`→patch, 파괴적 변경 표시(`BREAKING CHANGE`, 명시적 호환성
-   깨짐)→major로 판단해 **주 버전(Major, X.0.0) — 하위 호환되지 않는 변경 / 부 버전(Minor,
+2. **대상 커밋 판별**: squash merge 워크플로에서는 `git log main..develop`이 이미 지난
+   릴리즈에 반영된 옛날 커밋까지 다시 보여줄 수 있으므로, 아래 순서로 정확한 경계를 구한다.
+   a. `git log develop --first-parent --merges -1`로 `develop`의 first-parent 체인에서
+      가장 최근 merge 커밋을 찾는다.
+   b. 그 커밋이 존재하고 `git merge-base --is-ancestor <main tip> <후보 커밋>`이 참이면
+      (즉 그 merge가 실제로 `main`을 병합한 것이면) 지난 릴리즈의 동기화 지점으로 보고
+      `git log <후보 커밋>..develop --oneline`을 대상 커밋으로 쓴다.
+   c. 그런 커밋이 없거나 `main` tip을 조상으로 포함하지 않으면(첫 릴리즈이거나 동기화 방식이
+      다름) `git log main..develop --oneline`을 그대로 쓴다.
+   위에서 구한 대상 커밋이 비어 있으면 릴리즈할 변경이 없다는 뜻이므로 사용자에게 확인한다.
+   Conventional 스타일이면 `feat`→minor, `fix`/`chore`/`docs`→patch, 파괴적 변경 표시
+   (`BREAKING CHANGE`, 명시적 호환성 깨짐)→major로 판단해 **주 버전(Major, X.0.0) — 하위
+   호환되지 않는 변경 / 부 버전(Minor,
    0.X.0) — 하위 호환되는 기능 추가 / 수 버전(Patch, 0.0.X) — 하위 호환되는 버그 수정** 기준으로
    추천값을 제시한다. 최종 선택은 사용자가 확정한다.
 3. `main`으로 전환하고 `git merge --squash develop`을 실행한다. 충돌 시 멈추고 사용자에게
