@@ -13,6 +13,7 @@
     "src/",
     "templates/",
     "skills/mykit/",
+    "commands/",
     ".claude-plugin/",
     "README.md",
     "CHANGELOG.md",
