@@ -44,6 +44,9 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
   여부 확인).
 - `CHANGELOG.md` 존재 여부와 기존 버전 항목의 포맷. 위 "CHANGELOG 형식"과 다른 형식이 이미
   확립되어 있으면 기존 형식을 유지한다.
+- `CHANGELOG.md`의 버전 항목과 실제 release 이력(`release: vX.Y.Z` 커밋 또는 `git tag`)을
+  대조해 중간에 빠진 버전이 있는지 확인한다 (예: 0.1.2, 0.1.3 항목은 있는데 0.2.0 항목만 없는
+  경우).
 - 기존 `git tag` 목록과 네이밍 규칙 (`v` 접두사 유무).
 
 ## Confirmation Policy
@@ -54,6 +57,7 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
 - sync 처리가 끝난 뒤(또는 애초에 필요 없었을 때) `develop`의 dirty한 변경을 커밋하기 전
   (자동 커밋 여부, 그리고 커밋 관련 skill이 여럿이면 어떤 걸 쓸지).
 - squash merge 실행 전 (버전 종류와 대상 커밋 확정).
+- CHANGELOG에 과거 누락 버전 항목을 채워 넣기 전.
 - 버전 SOT 파일 목록과 CHANGELOG 초안 확정 전.
 - 최종 release 커밋 실행 전.
 - 태그 생성 전.
@@ -171,9 +175,15 @@ v0.2.0 (annotated)
 7. 감지된 패키지 매니저로 lockfile만 갱신한다 (`npm install --package-lock-only`,
    `pnpm install --lockfile-only` 등). `node_modules`는 건드리지 않는다.
 8. 감지된 검증 커맨드를 실행한다. 실패하면 커밋하지 않고 실패 원인을 보고한 뒤 멈춘다.
-9. `CHANGELOG.md`가 있으면 2단계에서 읽은 커밋들을 위 "CHANGELOG 형식"대로 정리해 초안을
-   제시한다. 프로젝트에 이미 다른 형식이 확립돼 있으면 그 형식을 따른다. 확정되면 최상단에
-   새 버전 섹션을 추가한다.
+9. **CHANGELOG 갱신**: `CHANGELOG.md`가 있으면 먼저 Project Scan에서 확인한 누락 버전 여부를
+   다시 본다.
+   a. 빠진 버전이 있으면, 버전마다 이전 release 커밋(또는 태그)부터 해당 release 커밋까지
+      `git log <이전>..<해당> --oneline`으로 대상 커밋을 읽어 위 "CHANGELOG 형식"대로 각각
+      초안을 만든다. 어떤 버전이 빠졌는지와 각 초안을 사용자에게 보여주고 확정받는다.
+      승인되면 기존 항목들 사이 올바른 위치(버전 내림차순)에 끼워 넣는다.
+   b. 2단계에서 읽은 이번 릴리즈 대상 커밋들을 같은 형식으로 정리해 새 버전 초안을 제시한다.
+      프로젝트에 이미 다른 형식이 확립돼 있으면 그 형식을 따른다. 확정되면 최상단에 새 버전
+      섹션을 추가한다.
 10. `git add .` 후 `git commit -m "release: vX.Y.Z"`로 커밋한다.
 11. `git tag -a vX.Y.Z -m "release: vX.Y.Z"`로 annotated tag를 생성한다.
 12. `git switch develop` 후 `git merge main`으로 병합해 이후 충돌을 방지한다. 충돌 시 멈추고
