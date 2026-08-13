@@ -29,10 +29,10 @@ try {
     process.exitCode = 1;
   }
   else {
-    console.log("User-facing content check passed.");
+    console.log("[mykit-content-check] User-facing content check passed.");
   }
 }
 catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  console.error("[mykit-content-check]", error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 }

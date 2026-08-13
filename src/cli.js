@@ -35,16 +35,20 @@ function parseSelectionFromFlags(args) {
   }
 
   const assertOne = (value, pool, label) => {
-    if (!pool.includes(value)) throw new Error(`Invalid ${label}: ${value}`);
+    if (!pool.includes(value)) {
+      throw new Error(`Invalid --${label} value: "${value}". Choose one of: ${pool.join(", ")}.`);
+    }
   };
   const assertMany = (values, pool, label) => {
     values.forEach((value) => {
-      if (!pool.includes(value)) throw new Error(`Invalid ${label}: ${value}`);
+      if (!pool.includes(value)) {
+        throw new Error(`Invalid --${label} value: "${value}". Choose one of: ${pool.join(", ")}.`);
+      }
     });
   };
 
   if (commit && !["auto", "manual"].includes(commit)) {
-    throw new Error(`Invalid --commit value: ${commit}. Expected "auto" or "manual".`);
+    throw new Error(`Invalid --commit value: "${commit}". Choose "auto" or "manual".`);
   }
 
   assertOne(frontend, frontendStacks, "frontend");
@@ -93,7 +97,7 @@ export async function runCli(args) {
     return;
   }
   if (command !== "init") {
-    throw new Error(`Unknown command: ${command}`);
+    throw new Error(`Unknown command: "${command}". Run "mykit --help" to see available commands.`);
   }
 
   const rest = args.slice(1);

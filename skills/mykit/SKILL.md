@@ -128,6 +128,10 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
 
+각 행은 `commands/<파일명>.md`로도 노출돼 있어 `/mykit:add-component`, `/mykit:release-version`처럼
+슬래시 커맨드로 바로 부를 수 있다. 두 경로 모두 같은 action 문서를 SOT로 읽으므로 내용을
+따로 유지하지 않는다.
+
 위 표에 없는 개발 작업(기능 추가, 리팩터링, 버그 수정, 테스트, 보안 검토, 라이브러리
 연동, PR 리뷰, API/DB/백그라운드 작업 등)은 전용 action 문서 없이 karpathy-guidelines의
 원칙과 Superpowers 같은 방법론 스킬, 그리고 이 SKILL.md의 나머지 원칙을 바로 적용한다.
