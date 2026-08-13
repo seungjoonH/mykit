@@ -58,7 +58,7 @@ function aiTemplateMap(key, autoCommit = true) {
       },
     ];
   }
-  throw new Error(`Unknown AI guide key: ${key}`);
+  throw new Error(`Unknown AI guide key: "${key}". This looks like a mykit bug — please file an issue.`);
 }
 
 function docPath(key) {
@@ -319,7 +319,10 @@ export async function generatePlaybook({ cwd, selection, dryRun = false }) {
         await fs.access(templatePath);
       }
       catch {
-        throw new Error(`Missing template file: ${normalizeTemplatePath(selectedLanguage, key)}`);
+        throw new Error(
+          `Missing template file: "${normalizeTemplatePath(selectedLanguage, key)}". ` +
+            `This usually means the mykit install is corrupted — try reinstalling.`,
+        );
       }
       await ensureDir(path.dirname(path.join(cwd, outputPath)));
       await fs.copyFile(templatePath, path.join(cwd, outputPath));

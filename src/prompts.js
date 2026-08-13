@@ -56,7 +56,7 @@ export async function promptSelection() {
     required: true,
   });
   const autoCommit = await select({
-    message: "Commit behavior",
+    message: "Select commit behavior",
     choices: [
       { name: "auto — commit when a logical unit is complete", value: true },
       { name: "manual — never commit without explicit user approval", value: false },
