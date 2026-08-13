@@ -51,6 +51,8 @@ CHANGELOG는 내부 커밋 로그 요약이 아니라 사용자가 읽는 릴리
 릴리즈 이력은 되돌리기 어렵기 때문에 아래 각 단계는 항상 확인받는다.
 
 - `develop`이 `main`보다 뒤처져 있어 `main`→`develop` 동기화 병합이 필요할 때, 그 병합 실행 전.
+- sync 처리가 끝난 뒤(또는 애초에 필요 없었을 때) `develop`의 dirty한 변경을 커밋하기 전
+  (자동 커밋 여부, 그리고 커밋 관련 skill이 여럿이면 어떤 걸 쓸지).
 - squash merge 실행 전 (버전 종류와 대상 커밋 확정).
 - 버전 SOT 파일 목록과 CHANGELOG 초안 확정 전.
 - 최종 release 커밋 실행 전.
@@ -134,11 +136,28 @@ v0.2.0 (annotated)
 
 ## Execution
 
-1. **Pre-flight**: `main`/`develop` clean 여부, `develop`이 `main`보다 앞서 있는지 확인한다.
-   `git log develop..main`이 비어 있지 않으면(지난 릴리즈 병합 누락) 위 Confirmation Prompt로
-   먼저 보고하고, 승인받으면 `git switch develop && git merge main`으로 동기화한다. 충돌 시
-   멈추고 사용자에게 해결을 요청한다. 동기화 후에도 clean하지 않거나 `develop`이 `main`보다
-   앞서 있지 않으면 멈추고 보고한다.
+1. **Pre-flight**:
+   a. **Sync 확인 (항상 가장 먼저)**: `git log develop..main`으로 main이 develop보다 앞서 있는지
+      확인한다. `develop`이 dirty하든 clean하든, 그리고 아래 b단계의 커밋을 skill로 자동
+      처리하든 사용자가 직접 커밋하든, 이 sync 확인·처리는 항상 그 어떤 커밋보다 먼저
+      끝나 있어야 한다 — dirty한 변경 위에 지난 릴리즈 병합 누락까지 얹혀서 이력이 꼬이는
+      걸 막기 위해서다.
+      - 비어 있으면 이미 동기화된 것이므로 그대로 다음 단계로 넘어간다.
+      - 비어 있지 않으면(지난 릴리즈 병합 누락) 위 Confirmation Prompt로 먼저 보고하고
+        승인받는다.
+        - `develop`이 clean하면 바로 `git switch develop && git merge main`을 실행한다.
+        - `develop`이 dirty하면 `git stash push -m "release-version: pre-sync"`로 변경을
+          보관한 뒤 동기화하고 `git stash pop`으로 복원한다.
+        병합 또는 `stash pop` 충돌 시 멈추고 사용자에게 해결을 요청한다.
+   b. **Dirty 처리**: sync 처리를 마친 뒤에도(또는 애초에 sync가 필요 없었더라도) `develop`이
+      dirty하면, 현재 설치된 skill 중 git diff 기반 커밋 메시지 작성/커밋 자동화를 다루는
+      skill이 있는지 찾는다. 특정 이름을 기본값으로 고정하지 않고 매번 스캔한다.
+      - 0개면 멈추고 사용자에게 어떻게 진행할지 묻는다 (직접 커밋 또는 중단).
+      - 1개면 "자동으로 커밋할까요?"라고 확인한다.
+      - 2개 이상이면 "어떤 스킬을 사용할까요?"라고 확인해 하나를 고르게 한다.
+      확정되면 그 skill로 초안을 제시하고 사용자 확인 후 커밋한다.
+   c. 위 과정을 마친 뒤에도 `develop`이 clean하지 않거나 `main`보다 앞서 있지 않으면 멈추고
+      보고한다.
 2. `git log main..develop --oneline`으로 대상 커밋을 읽는다. Conventional 스타일이면
    `feat`→minor, `fix`/`chore`/`docs`→patch, 파괴적 변경 표시(`BREAKING CHANGE`, 명시적 호환성
    깨짐)→major로 판단해 **주 버전(Major, X.0.0) — 하위 호환되지 않는 변경 / 부 버전(Minor,
