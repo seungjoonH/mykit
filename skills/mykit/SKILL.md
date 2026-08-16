@@ -125,6 +125,7 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 | primitive/재사용 컴포넌트/기존 화면의 제한된 UI 조각 추가 | `actions/add-component.md` |
 | 새 화면/route/dashboard/settings/list-detail/form workflow/화면 전체 layout 구현 | `actions/build-screen.md` |
 | 코드 스타일 점검/mykit style/lint 전 리뷰/PR 전 스타일 확인 | `actions/review-code-style.md` |
+| 기존 코드의 구조적 리팩토링/컴포넌트-훅 경계/데이터 요청 계층/디자인 시스템 SSOT 감사 | `actions/code-refactoring.md` |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
 
