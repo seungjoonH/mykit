@@ -36,6 +36,9 @@ mykit 코드 스타일 기준으로 파일, 모듈, PR 후보를 점검할 때 �
 - 컴포넌트 계층 이동.
 - 파일 분리.
 
+이 항목들은 review-code-style의 스코프 밖이다. `code-refactoring.md`(및 관련
+`audit-*.md`)로 라우팅한다.
+
 ## Confirmation Prompt
 
 ```text
