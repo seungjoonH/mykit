@@ -76,10 +76,35 @@ const skill = await read("skills/mykit/SKILL.md");
 const addComponent = await read("skills/mykit/actions/add-component.md");
 const buildScreen = await read("skills/mykit/actions/build-screen.md");
 const codeRefactoring = await read("skills/mykit/actions/code-refactoring.md");
-includesAll(skill, [/actions\/build-screen\.md/, /references\/en\/frontend\/ui\/screen\.md/, /actions\/code-refactoring\.md/], "skill routing");
-includesAll(addComponent, [/build-screen\.md/, /route\/page/], "add-component routing");
-includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /Content QA/, /금지 문자열을 자동 검색/, /기능 완료와 디자인 완료를 별도로 판정/], "build-screen action");
-includesAll(codeRefactoring, [/review-code-style\.md/, /디자인 시스템 SSOT/, /utils\//, /dirty worktree/, /프론트엔드\(React 계열\) 전용/, /grep 키워드/], "code-refactoring action");
+const reviewCodeStyle = await read("skills/mykit/actions/review-code-style.md");
+const auditHooks = await read("skills/mykit/actions/audit-hooks.md");
+const auditApiLayer = await read("skills/mykit/actions/audit-api-layer.md");
+const auditA11ySsot = await read("skills/mykit/actions/audit-a11y-ssot.md");
+const auditComponentApi = await read("skills/mykit/actions/audit-component-api.md");
+const auditHygiene = await read("skills/mykit/actions/audit-hygiene.md");
+const updateRules = await read("skills/mykit/actions/update-rules.md");
+
+includesAll(skill, [
+  /actions\/build-screen\.md/,
+  /references\/en\/frontend\/ui\/screen\.md/,
+  /actions\/code-refactoring\.md/,
+  /actions\/audit-hooks\.md/,
+  /actions\/audit-api-layer\.md/,
+  /actions\/audit-a11y-ssot\.md/,
+  /actions\/audit-component-api\.md/,
+  /actions\/audit-hygiene\.md/,
+  /actions\/update-rules\.md/,
+], "skill routing");
+includesAll(addComponent, [/build-screen\.md/, /route\/page/, /code-refactoring\.md/, /audit-hooks\.md/], "add-component routing");
+includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /Content QA/, /금지 문자열을 자동 검색/, /기능 완료와 디자인 완료를 별도로 판정/, /code-refactoring\.md/], "build-screen action");
+includesAll(reviewCodeStyle, [/review-code-style의 스코프 밖/, /code-refactoring\.md/], "review-code-style routing");
+includesAll(codeRefactoring, [/dirty worktree/, /audit-hooks\.md/, /audit-api-layer\.md/, /audit-a11y-ssot\.md/, /audit-component-api\.md/, /audit-hygiene\.md/, /review-code-style\.md/], "code-refactoring dispatcher");
+includesAll(auditHooks, [/audit-a11y-ssot\.md/, /audit-api-layer\.md/, /wiring/, /onSuccess/], "audit-hooks action");
+includesAll(auditApiLayer, [/언어나 스택에 무관하게 적용된다/, /같은 리소스를 다루는/], "audit-api-layer action");
+includesAll(auditA11ySsot, [/SSOT 컴포넌트/, /<select`/], "audit-a11y-ssot action");
+includesAll(auditComponentApi, [/Base \+ Named Export/, /이름 있는 타입/], "audit-component-api action");
+includesAll(auditHygiene, [/과도하게 잘게 쪼개진/, /utils\//], "audit-hygiene action");
+includesAll(updateRules, [/source-rule-map\.md/, /스텁이면/, /가운뎃점/], "update-rules action");
 
 const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "mykit-ui-contracts-"));
 try {

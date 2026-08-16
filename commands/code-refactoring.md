@@ -1,5 +1,5 @@
 ---
-description: 기존 코드의 구조/설계 원칙 리팩토링 - 컴포넌트/훅 경계, 데이터 요청 계층, 디자인 시스템 SSOT 감사
+description: 기존 코드 전면 리팩토링 진입점 - 대상 확인 후 audit-hooks/api-layer/a11y-ssot/component-api/hygiene 중 관련된 것만 돌림
 ---
 
 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/code-refactoring.md`를 읽고 그 절차를 따른다.

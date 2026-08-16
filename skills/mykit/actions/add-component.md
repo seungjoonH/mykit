@@ -6,6 +6,11 @@ primitive, 재사용 가능한 composed component, 기존 화면 안의 제한�
 route/page, dashboard, settings, list/detail, form workflow, 화면 전체 layout, mock/wireframe/
 screenshot 기반 구현, 여러 feature를 조합하는 작업은 `build-screen.md`로 라우팅한다.
 
+이미 있는 컴포넌트나 훅이 구조적으로 문제가 있어서(너무 크다, 책임이 섞였다, 계층이
+잘못됐다) 나누는 거라면 이 action이 아니라 `code-refactoring.md`(및 `audit-hooks.md`)로
+라우팅한다. add-component는 새 컴포넌트를 설계해서 만드는 작업이지, 기존 위반을 고치는
+작업이 아니다.
+
 ## 원칙
 
 - 사용자가 긴 요구사항 폼을 채우게 하지 않는다.

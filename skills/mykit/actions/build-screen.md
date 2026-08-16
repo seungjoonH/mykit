@@ -4,6 +4,10 @@
 조합하는 화면, mock/screenshot/wireframe/design spec 기반 화면, 기존 page의 주요 layout 변경에
 사용한다.
 
+기존 page의 layout 변경이 레퍼런스/디자인 스펙을 따라가는 거면 build-screen이다. 반대로
+디자인 변경 없이 아키텍처 원칙 위반(계층 혼재, 책임 과다) 때문에 구조만 바꾸는 거면
+`code-refactoring.md`로 라우팅한다.
+
 ## 원칙
 
 - 승인된 디자인, 화면 구조, 상태, 반응형 요구사항은 primitive 재사용과 구현 편의보다 우선한다.

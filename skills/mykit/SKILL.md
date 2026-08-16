@@ -125,8 +125,14 @@ LLM이 가장 자주 건너뛰는 단계다. 타협 없이 지킨다.
 | primitive/재사용 컴포넌트/기존 화면의 제한된 UI 조각 추가 | `actions/add-component.md` |
 | 새 화면/route/dashboard/settings/list-detail/form workflow/화면 전체 layout 구현 | `actions/build-screen.md` |
 | 코드 스타일 점검/mykit style/lint 전 리뷰/PR 전 스타일 확인 | `actions/review-code-style.md` |
-| 기존 코드의 구조적 리팩토링/컴포넌트-훅 경계/데이터 요청 계층/디자인 시스템 SSOT 감사 | `actions/code-refactoring.md` |
+| 기존 코드 전면 리팩토링(대상 확인 후 아래 audit 중 관련된 것만 진행) | `actions/code-refactoring.md` |
+| 컴포넌트/훅/Store 계층 경계만 점검(wiring, 콜백 위탁, 재노출, 책임 혼재) | `actions/audit-hooks.md` |
+| 데이터 요청 계층만 점검(fetch 산재, client 통합, API 응집성) | `actions/audit-api-layer.md` |
+| 디자인 시스템 SSOT만 점검(native checkbox/select 직접 사용) | `actions/audit-a11y-ssot.md` |
+| 컴포넌트 props/variant/타입 설계만 점검 | `actions/audit-component-api.md` |
+| 데이터 설계/사이드이펙트/정리(utils)/성능 위생만 점검 | `actions/audit-hygiene.md` |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
+| mykit 자체 code-quality.md/규칙 문서 추가 또는 수정 | `actions/update-rules.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
 
 각 행은 `commands/<파일명>.md`로도 노출돼 있어 `/mykit:add-component`, `/mykit:release-version`처럼
