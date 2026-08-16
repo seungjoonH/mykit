@@ -12,7 +12,7 @@
 - checkbox와 dropdown은 디자인 일관성 문제로 native를 화면에 직접 노출하지 않는다.
   `<input type="checkbox">`는 프로젝트 Checkbox SSOT로 감싸고, `<select>`는 커스터마이징과
   브라우저 간 UX 차이 때문에 원칙적으로 쓰지 않는다. 대체하는 커스텀 Dropdown도 native와
-  동등한 키보드 조작·포커스 관리·accessible name은 그대로 보장한다.
+  동등한 키보드 조작, 포커스 관리, accessible name은 그대로 보장한다.
 - 포커스 가능한 요소에 `aria-hidden`을 주지 않는다.
 - 장식용 아이콘과 시각 보조 래퍼는 `aria-hidden="true"`로 숨긴다.
 - 사용자 조작의 결과가 명확하지 않으면 label에 동작 결과를 포함한다.

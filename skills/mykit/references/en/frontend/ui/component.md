@@ -5,13 +5,14 @@
 - One component should expose one clear responsibility.
 - Move repeated UI blocks into child components or hooks.
 - Move to a hook once a component has network requests plus 2 or more derived states (validation, computed values).
+- Keep components light at all times. Never cram different kinds of logic into one hook; split by logic type instead.
 
 ## Do
 - Extract handlers and computed values before JSX return.
 
 ## Don't
 - Inline complex IIFE or branching trees directly inside JSX.
-- Never call `fetch` directly inside a component body — call it through the shared client module.
+- Never call `fetch` directly inside a component body. Call it through a domain service function (e.g. `UserService.update()`) and never expose URL, method, or header assembly in the component.
 - Never leave a no-op expression statement (a line that only reads a value without using it).
 
 ## Example
@@ -27,31 +28,31 @@ function ResultPanel({ items }: Props) {
 
 ```tsx
 // ❌ fetch and derived validation stay inline in the component
-function RoomEditForm({ initialData }: Props) {
+function TicketEditForm({ initialData }: Props) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await fetch('/api/rooms', { method: 'POST', body: JSON.stringify(formData) });
+    await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(formData) });
   };
 
   return <form onSubmit={handleSubmit}>...</form>;
 }
 
 // ✅ state, validation, and the request move into a hook
-function useRoomEditForm(initialData: RoomEditData) {
+function useTicketEditForm(initialData: TicketEditData) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    return RoomService.update(formData);
+    return TicketService.update(formData);
   };
   return { formData, setFormData, isDisabled, handleSubmit };
 }
 
-function RoomEditForm({ initialData }: Props) {
-  const { formData, setFormData, isDisabled, handleSubmit } = useRoomEditForm(initialData);
+function TicketEditForm({ initialData }: Props) {
+  const { formData, setFormData, isDisabled, handleSubmit } = useTicketEditForm(initialData);
   return <form onSubmit={handleSubmit}>...</form>;
 }
 ```

@@ -15,6 +15,46 @@
 - **예측 가능하다**: 일반적인 기대를 벗어나지 않는다
 - **단위가 작다**: 한 번에 이해 가능한 크기다
 
+### 복잡성은 은닉하고, 실사용 API는 간단하게
+
+호출부는 구현 방식이 아니라 의도만 알면 된다. URL, method, header, 에러 코드 매핑, 재시도
+같은 세부사항은 그 기능을 제공하는 모듈 안에 완전히 가두고, 밖으로는 도메인 의미를 가진
+함수나 컴포넌트 API만 노출한다.
+
+```typescript
+// ❌ 호출부가 transport 세부사항을 그대로 알아야 한다
+await request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+
+// ✅ 호출부는 의도만 남는다
+await UserService.update(id, data);
+```
+
+컴포넌트도 예외가 아니다. 내부에 생기는 복잡한 로직은 로직 종류별로 각각 별도의 훅(`use*`)
+으로 분리하고, 컴포넌트 자체는 항상 가벼운 형태를 유지한다. 여러 로직을 훅 하나에 몰아넣지
+않는다. 가장 바깥에서 쓰이는 API나 컴포넌트일수록 표면은 더 간단해야 한다.
+
+```tsx
+// ❌ 폼 상태, validation, 요청 로직이 컴포넌트 하나에 몰려 있다
+function OrderEditForm() {
+  const [formData, setFormData] = useState(initialData);
+  const isDisabled = !formData.title.trim();
+  const handleSubmit = () => OrderService.update(formData);
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+
+// ✅ 로직 종류별로 별도 훅으로 분리하고, 컴포넌트는 가벼운 형태만 유지한다
+function useOrderFormState(initialData: OrderData) { /* formData, setFormData */ }
+function useOrderValidation(formData: OrderData) { /* isDisabled */ }
+function useOrderSubmit(formData: OrderData) { /* handleSubmit */ }
+
+function OrderEditForm() {
+  const { formData, setFormData } = useOrderFormState(initialData);
+  const { isDisabled } = useOrderValidation(formData);
+  const { handleSubmit } = useOrderSubmit(formData);
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+```
+
 ---
 
 ## 1. 코드 구조 원칙
@@ -107,6 +147,9 @@ const result = compute();
 
 ### 1.7 컴포넌트/모듈 크기
 
+컴포넌트는 항상 가벼운 형태를 유지한다. 서로 다른 종류의 로직은 하나의 훅에 몰아넣지 않고
+로직별로 각각 분리한다.
+
 다음 조건이면 분리한다:
 - 상태가 많다
 - 사이드이펙트가 많다
@@ -124,32 +167,32 @@ const result = compute();
 
 ```tsx
 // ❌ fetch와 파생 validation이 컴포넌트에 그대로 있음
-function RoomEditForm({ initialData }: Props) {
+function TicketEditForm({ initialData }: Props) {
   const [formData, setFormData] = useState(initialData);
   const isTitleEmpty = !formData.title.trim();
   const isDisabled = isTitleEmpty || formData.tags.length === 0;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await fetch('/api/rooms', { method: 'POST', body: JSON.stringify(formData) });
+    await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(formData) });
   };
 
   return <form onSubmit={handleSubmit}>...</form>;
 }
 
-// ✅ 상태·validation·요청을 훅으로 분리
-function useRoomEditForm(initialData: RoomEditData) {
+// ✅ 상태, validation, 요청을 훅으로 분리
+function useTicketEditForm(initialData: TicketEditData) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    return RoomService.update(formData);
+    return TicketService.update(formData);
   };
   return { formData, setFormData, isDisabled, handleSubmit };
 }
 
-function RoomEditForm({ initialData }: Props) {
-  const { formData, setFormData, isDisabled, handleSubmit } = useRoomEditForm(initialData);
+function TicketEditForm({ initialData }: Props) {
+  const { formData, setFormData, isDisabled, handleSubmit } = useTicketEditForm(initialData);
   return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
@@ -230,7 +273,7 @@ catch { continue; }
 - unused 변수
 - unused export
 - 빈 파일
-- 부수효과 없는 표현식 구문(no-op statement) — 예: `initialData.isPrivate;`처럼 값만 참조하고 아무 데도 쓰지 않는 줄
+- 부수효과 없는 표현식 구문(no-op statement). 예: `initialData.isPrivate;`처럼 값만 참조하고 아무 데도 쓰지 않는 줄
 
 ### 2.3 데이터 구조 통합
 
@@ -259,6 +302,53 @@ const META = {
 - fallback 남발
 - try-catch로 숨기기
 - 환경 분기로 우회
+
+### 2.5 범용 유틸리티는 utils/로 분리
+
+**규칙**
+- 도메인과 무관한 순수 함수는 `utils/`에 두고 재사용한다
+- 같은 유틸리티 로직을 파일마다 인라인으로 다시 구현하지 않는다
+- 아직 한 곳에서만 쓰는 로직을 예측만으로 미리 `utils/`로 빼지 않는다. 실제로 2곳 이상에서
+  필요해졌을 때 추출한다
+
+```typescript
+// ❌ 한 곳에서만 쓰는데 미리 utils/로 추출
+// utils/formatOrderTitle.ts
+export function formatOrderTitle(order: Order) {
+  return `#${order.id} ${order.title}`;
+}
+
+// ✅ 두 번째로 필요해진 시점에 추출한다. 그 전까지는 인라인으로 둔다
+const title = `#${order.id} ${order.title}`;
+```
+
+**흔한 후보**
+- 날짜/시간: 상대 시간, locale 포맷, 기간 계산
+- 숫자/통화: 천 단위 구분, 통화 기호, 퍼센트, 단위 변환(바이트 → MB)
+- 문자열: truncate, slugify, capitalize, 마스킹(이메일, 전화번호)
+- 배열/객체: groupBy, uniqueBy, sortBy, pick/omit
+- 함수형: debounce, throttle, memoize
+- 형식 검증: 이메일, 전화번호, URL 형식 체크 (비즈니스 규칙 검증은 도메인 계층)
+
+```typescript
+// ❌ 같은 날짜 포맷 로직이 파일마다 따로 구현됨
+function OrderList({ orders }: Props) {
+  const formatted = new Date(orders[0].createdAt).toLocaleDateString('ko-KR');
+}
+
+function InvoiceDetail({ invoice }: Props) {
+  const formatted = new Date(invoice.issuedAt).toLocaleDateString('ko-KR');
+}
+
+// ✅ utils/에서 한 번만 정의
+// utils/date.ts
+export function formatDate(date: Date | string) {
+  return new Date(date).toLocaleDateString('ko-KR');
+}
+```
+
+`utils/`는 도메인 지식이 없는 순수 함수만 둔다. 도메인 규칙이나 API 호출이 섞이면
+`utils/`가 아니라 도메인 서비스나 훅으로 둔다.
 
 ---
 
@@ -486,6 +576,10 @@ const result = a + b;
 - 예측 가능한 에러는 사전에 차단
 - 에러는 숨기지 않고 드러낸다
 - 요청과 실패 처리(파싱, 에러 매핑)가 여러 호출부에서 반복되면 하나의 client 모듈로 통합한다
+- client 모듈을 감쌌다고 끝난 게 아니다. 호출부(컴포넌트, 훅)는 URL, method, header,
+  `try/catch`를 직접 다루지 않고 도메인 의미를 가진 함수만 호출한다
+- 같은 리소스를 다루는 API 호출 함수는 개별로 흩어두지 않고 하나의 서비스 모듈로 묶어
+  응집성을 지킨다 (아래 `UserService` 예시)
 
 ```typescript
 // ✅
@@ -505,8 +599,10 @@ async function updateUser(id: string, data: UserInput) {
   if (!res.ok) throw new Error('failed'); // 동일한 실패 처리 로직 반복
   return res.json();
 }
+```
 
-// ✅ 요청 + 실패 처리를 하나의 client가 소유
+```typescript
+// ❌ 여전히 부족함. client는 하나로 모았지만 호출부가 URL, method, 에러 처리를 직접 다룬다
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
@@ -516,9 +612,24 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
-const getUser = (id: string) => request<User>(`/api/users/${id}`);
-const updateUser = (id: string, data: UserInput) =>
-  request<User>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+// 컴포넌트/훅에서 이렇게 쓰면 아직 은닉이 안 된 것
+try {
+  await request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+} catch (err) {
+  setError(err instanceof Error ? err.message : '요청에 실패했습니다.');
+}
+```
+
+```typescript
+// ✅ 도메인 함수로 URL, method, header, 에러 처리를 완전히 은닉
+const UserService = {
+  get: (id: string) => request<User>(`/api/users/${id}`),
+  update: (id: string, data: UserInput) =>
+    request<User>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+};
+
+// 호출부는 의도만 남는다
+await UserService.update(id, data);
 ```
 
 ---
@@ -539,7 +650,7 @@ checkbox와 dropdown은 디자인 일관성 문제로 이 규칙의 대표 예�
   교체한다. SSOT 내부 구현이 네이티브 checkbox를 감싸는 건 허용한다.
 - `<select>`는 원칙적으로 사용하지 않는다. 브라우저마다 렌더링이 다르고 커스터마이징이
   어렵다. 커스텀 Dropdown(listbox/combobox ARIA 패턴)으로 대체하되, native `<select>`와
-  동등한 키보드 조작·포커스 관리·accessible name은 그대로 보장한다.
+  동등한 키보드 조작, 포커스 관리, accessible name은 그대로 보장한다.
 
 ```tsx
 // ❌ SSOT 확인 없이 native를 화면에 직접 사용
@@ -728,6 +839,7 @@ else { ... }
 - [ ] 사용하지 않는 import·export가 없는가?
 - [ ] 구조분해에서 실제로 쓰이지 않는 항목이 없는가?
 - [ ] 빈 파일이 남아 있지 않은가?
+- [ ] 날짜/숫자 포맷 같은 범용 유틸리티가 `utils/` 대신 파일마다 인라인으로 반복되는가?
 
 **에러 처리**
 - [ ] 요청 실패 처리(파싱, 에러 매핑)가 여러 호출부에 중복되어 있는가?
@@ -745,9 +857,12 @@ else { ... }
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-08-16 | utils/ 분리 규칙(2.5)에 조기 추출 금지(2곳 이상에서 필요할 때만 추출) caveat 추가 |
+| 2026-08-16 | 코드 정리 원칙에 범용 유틸리티 utils/ 분리 규칙(2.5) 추가 |
+| 2026-08-16 | 핵심 철학에 복잡성 은닉 원칙 추가, 에러 처리 예시를 도메인 함수 은닉 단계까지 확장 |
 | 2026-08-16 | 접근성 원칙에 디자인 시스템 SSOT 우선(0th Rule) 추가, checkbox/select native 사용 금지 규칙 추가 |
 | 2026-08-16 | 에러 처리 규칙에 요청/실패 처리 client 통합 원칙 추가 |
-| 2026-08-16 | 컴포넌트/모듈 크기 규칙에 fetch·파생 validation 분리 기준 추가, no-op statement 제거 규칙 추가 |
+| 2026-08-16 | 컴포넌트/모듈 크기 규칙에 fetch, 파생 validation 분리 기준 추가, no-op statement 제거 규칙 추가 |
 | 2026-04-17 | 제어문 블록 스타일 규칙 추가 (`else/else if/finally` 개행, `catch {}` 금지) |
 | 2026-04-11 | 언어 비교 규칙 (`is()` 유틸, `switch`) 초안 작성 |
 | 2026-04-11 | 핵심 철학·코드 구조·네이밍·접근성·데이터 설계 등 전체 규칙 추가 |
