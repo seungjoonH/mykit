@@ -5,6 +5,7 @@
 - 에러를 조용히 삼키지 않는다.
 - 에러 코드/메시지는 전역 상수(변수)로 중앙 관리한다.
 - 에러 검출/매핑은 중앙 핸들러(필터/미들웨어/어드바이스)로 일원화한다.
+- 요청과 실패 처리(파싱, 에러 매핑)가 여러 호출부에서 반복되면 하나의 client 모듈로 통합한다.
 
 ## Do
 - 도메인 에러를 명시적으로 throw/return 한다.
@@ -13,6 +14,7 @@
 
 ## Don't
 - 빈 catch 블록을 사용하지 않는다.
+- 호출부마다 자체 try/catch와 응답 파싱을 새로 작성하지 않는다.
 
 ## Do 예시
 ```ts
@@ -25,10 +27,41 @@ try { event = JSON.parse(raw); }
 catch { throw new Error(ERROR.INVALID_EVENT_PAYLOAD); }
 ```
 
+```ts
+// ✅ 요청 + 실패 처리를 하나의 client가 소유
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? ERROR.REQUEST_FAILED);
+  }
+  return res.json();
+}
+
+const getUser = (id: string) => request<User>(`/api/users/${id}`);
+const updateUser = (id: string, data: UserInput) =>
+  request<User>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+```
+
 ## Don't 예시
 ```ts
 try { event = JSON.parse(raw); }
 catch { throw new Error("invalid_event_payload"); } // literal 중복 금지
+```
+
+```ts
+// ❌ 호출부마다 요청과 실패 처리를 반복 구현
+async function getUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error("failed");
+  return res.json();
+}
+
+async function updateUser(id: string, data: UserInput) {
+  const res = await fetch(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("failed"); // 동일한 실패 처리 로직 반복
+  return res.json();
+}
 ```
 
 ## 경계

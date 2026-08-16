@@ -1,6 +1,7 @@
 # 접근성 규칙
 
 ## 규칙
+- native 요소를 검토하기 전에 디자인 시스템에 해당 UI 패턴의 SSOT 컴포넌트가 있는지 먼저 확인한다.
 - ARIA보다 native HTML 시맨틱을 우선한다.
 - interactive role 요소는 키보드 조작 가능해야 한다.
 - 포커스 가능한 요소에 `aria-hidden`을 사용하지 않는다.
@@ -10,6 +11,7 @@
 
 ## Don't
 - `tabIndex`/키보드 핸들러 없는 클릭 가능한 `div`를 쓰지 않는다.
+- `<input type="checkbox">`, `<select>`를 화면 코드에 직접 사용하지 않는다 — 프로젝트 SSOT 컴포넌트로 교체한다. `<select>`는 커스터마이징과 브라우저 간 UX 차이 때문에 원칙적으로 금지하며, 대체하는 커스텀 Dropdown도 native와 동등한 키보드 조작·접근성을 보장한다.
 
 ## 예시
 ```tsx
@@ -25,6 +27,16 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
 >
   Open
 </div>
+```
+
+```tsx
+// ❌ SSOT 확인 없이 native를 화면에 직접 사용
+<input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+<select value={status} onChange={(e) => setStatus(e.target.value)}>...</select>
+
+// ✅ 프로젝트 SSOT 컴포넌트 재사용
+<Checkbox checked={agreed} onChange={setAgreed} label="약관에 동의합니다" />
+<Dropdown value={status} onChange={setStatus} options={statusOptions} />
 ```
 
 ## 경계

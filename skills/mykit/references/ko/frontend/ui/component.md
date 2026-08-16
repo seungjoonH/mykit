@@ -4,12 +4,15 @@
 - 렌더링 로직과 상태 전이 로직을 분리한다.
 - 컴포넌트 하나는 명확한 책임 하나만 가진다.
 - 반복되는 UI 블록은 하위 컴포넌트나 훅으로 추출한다.
+- 네트워크 요청과 파생 상태(validation, 계산된 값)가 2개 이상이면 훅으로 옮긴다.
 
 ## Do
 - JSX 반환 전에 계산 값과 핸들러를 미리 정리한다.
 
 ## Don't
 - JSX 안에 복잡한 IIFE나 중첩 분기를 직접 넣지 않는다.
+- 컴포넌트 본문에서 `fetch`를 직접 호출하지 않는다 — 공용 client 모듈을 통해 호출한다.
+- 부수효과 없는 표현식 구문(no-op statement)을 남기지 않는다.
 
 ## 예시
 ```tsx
@@ -19,6 +22,37 @@ function ResultPanel({ items }: Props) {
 
   if (isEmpty) return <EmptyState />;
   return <ResultList items={visibleItems} />;
+}
+```
+
+```tsx
+// ❌ fetch와 파생 validation이 컴포넌트에 그대로 있음
+function RoomEditForm({ initialData }: Props) {
+  const [formData, setFormData] = useState(initialData);
+  const isDisabled = !formData.title.trim() || formData.tags.length === 0;
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    await fetch('/api/rooms', { method: 'POST', body: JSON.stringify(formData) });
+  };
+
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+
+// ✅ 상태·validation·요청을 훅으로 분리
+function useRoomEditForm(initialData: RoomEditData) {
+  const [formData, setFormData] = useState(initialData);
+  const isDisabled = !formData.title.trim() || formData.tags.length === 0;
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    return RoomService.update(formData);
+  };
+  return { formData, setFormData, isDisabled, handleSubmit };
+}
+
+function RoomEditForm({ initialData }: Props) {
+  const { formData, setFormData, isDisabled, handleSubmit } = useRoomEditForm(initialData);
+  return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
 
