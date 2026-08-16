@@ -6,7 +6,7 @@ This file maps `code-quality.md` into reusable mykit playbook modules.
 
 - `0. 핵심 철학` -> `core/readability.md`.
 - `1.1`, `1.2`, `1.3`, `1.4`, `1.6`, `1.9` -> `core/code-style.md`.
-- `2.1`, `2.2`, `2.4` -> `core/code-hygiene.md`.
+- `2.1`, `2.2`, `2.4`, `2.5` -> `core/code-hygiene.md`.
 - `3.x` -> `core/naming.md`.
 - `6.1` -> `core/performance.md`.
 - `7` -> `core/error-handling.md`.
