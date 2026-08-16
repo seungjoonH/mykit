@@ -112,12 +112,47 @@ const result = compute();
 - 사이드이펙트가 많다
 - 이벤트 핸들러가 많다
 - UI 블록이 여러 개다
+- 컴포넌트 본문에 `fetch`/네트워크 요청이 직접 있다
+- 파생 상태(validation, 계산된 값)가 2개 이상이다
 
 | 대상 | 분리 방법 |
 |---|---|
 | 상태/로직 | custom hook |
 | UI 블록 | 하위 컴포넌트 |
 | 데이터 처리 | service/module |
+| 네트워크 요청 | service 레이어 호출 + custom hook, 컴포넌트에 `fetch` 직접 금지 |
+
+```tsx
+// ❌ fetch와 파생 validation이 컴포넌트에 그대로 있음
+function RoomEditForm({ initialData }: Props) {
+  const [formData, setFormData] = useState(initialData);
+  const isTitleEmpty = !formData.title.trim();
+  const isDisabled = isTitleEmpty || formData.tags.length === 0;
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    await fetch('/api/rooms', { method: 'POST', body: JSON.stringify(formData) });
+  };
+
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+
+// ✅ 상태·validation·요청을 훅으로 분리
+function useRoomEditForm(initialData: RoomEditData) {
+  const [formData, setFormData] = useState(initialData);
+  const isDisabled = !formData.title.trim() || formData.tags.length === 0;
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    return RoomService.update(formData);
+  };
+  return { formData, setFormData, isDisabled, handleSubmit };
+}
+
+function RoomEditForm({ initialData }: Props) {
+  const { formData, setFormData, isDisabled, handleSubmit } = useRoomEditForm(initialData);
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+```
 
 ### 1.8 사이드 이펙트
 
@@ -195,6 +230,7 @@ catch { continue; }
 - unused 변수
 - unused export
 - 빈 파일
+- 부수효과 없는 표현식 구문(no-op statement) — 예: `initialData.isPrivate;`처럼 값만 참조하고 아무 데도 쓰지 않는 줄
 
 ### 2.3 데이터 구조 통합
 
@@ -449,17 +485,71 @@ const result = a + b;
 **규칙**
 - 예측 가능한 에러는 사전에 차단
 - 에러는 숨기지 않고 드러낸다
+- 요청과 실패 처리(파싱, 에러 매핑)가 여러 호출부에서 반복되면 하나의 client 모듈로 통합한다
 
 ```typescript
 // ✅
 if (!response.ok) throw new Error();
 ```
 
+```typescript
+// ❌ 호출부마다 요청과 실패 처리를 반복 구현
+async function getUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error('failed');
+  return res.json();
+}
+
+async function updateUser(id: string, data: UserInput) {
+  const res = await fetch(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+  if (!res.ok) throw new Error('failed'); // 동일한 실패 처리 로직 반복
+  return res.json();
+}
+
+// ✅ 요청 + 실패 처리를 하나의 client가 소유
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? '요청에 실패했습니다.');
+  }
+  return res.json();
+}
+
+const getUser = (id: string) => request<User>(`/api/users/${id}`);
+const updateUser = (id: string, data: UserInput) =>
+  request<User>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+```
+
 ---
 
 ## 8. 접근성 원칙
 
-W3C "Using ARIA" 4가지 규칙을 따른다. 위반 시 코드 리뷰를 통과하지 못한다.
+먼저 디자인 시스템 SSOT를 확인하고, 없으면 W3C "Using ARIA" 4가지 규칙을 따른다. 위반 시
+코드 리뷰를 통과하지 못한다.
+
+### 0th Rule — 디자인 시스템 SSOT 우선
+
+native 요소를 검토하기 전에, 이 UI 패턴에 대해 프로젝트 디자인 시스템에 이미 SSOT(Single
+Source of Truth) 컴포넌트가 있는지 먼저 확인한다. 있으면 그 컴포넌트를 재사용하고, 없을
+때만 1st Rule(native 우선)로 넘어간다.
+
+checkbox와 dropdown은 디자인 일관성 문제로 이 규칙의 대표 예외 대상이다.
+- `<input type="checkbox">`를 화면 코드에 직접 노출하지 않는다. 프로젝트 Checkbox SSOT로
+  교체한다. SSOT 내부 구현이 네이티브 checkbox를 감싸는 건 허용한다.
+- `<select>`는 원칙적으로 사용하지 않는다. 브라우저마다 렌더링이 다르고 커스터마이징이
+  어렵다. 커스텀 Dropdown(listbox/combobox ARIA 패턴)으로 대체하되, native `<select>`와
+  동등한 키보드 조작·포커스 관리·accessible name은 그대로 보장한다.
+
+```tsx
+// ❌ SSOT 확인 없이 native를 화면에 직접 사용
+<input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+<select value={status} onChange={(e) => setStatus(e.target.value)}>...</select>
+
+// ✅ 프로젝트 SSOT 컴포넌트 재사용
+<Checkbox checked={agreed} onChange={setAgreed} label="약관에 동의합니다" />
+<Dropdown value={status} onChange={setStatus} options={statusOptions} />
+```
 
 ### 1st Rule — native 요소 우선
 
@@ -615,6 +705,8 @@ else { ... }
 - [ ] 중첩 조건이 있는가?
 - [ ] 로직이 JSX 안에 있는가?
 - [ ] 컴포넌트가 너무 큰가?
+- [ ] 컴포넌트 본문에 `fetch`가 직접 있는가?
+- [ ] 부수효과 없는 표현식 구문이 남아 있는가?
 - [ ] effect가 여러 역할을 하는가?
 - [ ] 불필요한 최적화가 있는가?
 - [ ] 데이터로 표현 가능한 로직을 코드로 처리하고 있지 않은가?
@@ -637,7 +729,12 @@ else { ... }
 - [ ] 구조분해에서 실제로 쓰이지 않는 항목이 없는가?
 - [ ] 빈 파일이 남아 있지 않은가?
 
+**에러 처리**
+- [ ] 요청 실패 처리(파싱, 에러 매핑)가 여러 호출부에 중복되어 있는가?
+
 **접근성**
+- [ ] 디자인 시스템에 SSOT 컴포넌트가 있는데 native를 직접 쓰고 있는가?
+- [ ] `<input type="checkbox">`, `<select>`를 화면 코드에 직접 사용하고 있는가?
 - [ ] native HTML 요소로 대체 가능한 ARIA role이 없는가?
 - [ ] interactive role에 `tabIndex`와 `onKeyDown`이 있는가?
 - [ ] focusable 요소에 `aria-hidden`이 붙어 있지 않은가?
@@ -648,6 +745,9 @@ else { ... }
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-08-16 | 접근성 원칙에 디자인 시스템 SSOT 우선(0th Rule) 추가, checkbox/select native 사용 금지 규칙 추가 |
+| 2026-08-16 | 에러 처리 규칙에 요청/실패 처리 client 통합 원칙 추가 |
+| 2026-08-16 | 컴포넌트/모듈 크기 규칙에 fetch·파생 validation 분리 기준 추가, no-op statement 제거 규칙 추가 |
 | 2026-04-17 | 제어문 블록 스타일 규칙 추가 (`else/else if/finally` 개행, `catch {}` 금지) |
 | 2026-04-11 | 언어 비교 규칙 (`is()` 유틸, `switch`) 초안 작성 |
 | 2026-04-11 | 핵심 철학·코드 구조·네이밍·접근성·데이터 설계 등 전체 규칙 추가 |
