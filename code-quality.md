@@ -29,31 +29,107 @@ await request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) 
 await UserService.update(id, data);
 ```
 
-컴포넌트도 예외가 아니다. 내부에 생기는 복잡한 로직은 로직 종류별로 각각 별도의 훅(`use*`)
-으로 분리하고, 컴포넌트 자체는 항상 가벼운 형태를 유지한다. 여러 로직을 훅 하나에 몰아넣지
-않는다. 가장 바깥에서 쓰이는 API나 컴포넌트일수록 표면은 더 간단해야 한다.
+컴포넌트도 예외가 아니다. 내부에 생기는 복잡한 로직은 컴포넌트 밖으로 훅으로 옮기고,
+컴포넌트 자체는 항상 가벼운 형태를 유지한다. 가장 바깥에서 쓰이는 API나 컴포넌트일수록
+표면은 더 간단해야 한다.
+
+훅의 "책임"은 상태나 effect 개수가 아니라 기능이나 도메인 단위로 판단한다. 하나의 기능에 속한
+상태, effect, 이벤트 리스너는 여러 개여도 한 훅에 있어도 된다. 진짜 문제는 서로 무관한
+기능을 한 훅에 섞는 것이다. 훅 내부가 아무리 복잡해도 반환하는 값과 함수는 간단하고
+예측 가능해야 한다. 이 원칙은 위 client 모듈과 똑같다. 내부 복잡성은 감추고 표면은
+간단하게 유지한다. 책임 경계를 한 번 정했으면 로직을 훅 안팎으로 반복해서 옮기지 않는다.
 
 ```tsx
-// ❌ 폼 상태, validation, 요청 로직이 컴포넌트 하나에 몰려 있다
-function OrderEditForm() {
+// ❌ 서로 무관한 기능을 한 훅에 섞는다
+function useOrderPage(initialData: OrderData) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim();
   const handleSubmit = () => OrderService.update(formData);
-  return <form onSubmit={handleSubmit}>...</form>;
+
+  // 주문 수정과 무관한 전역 알림 구독이 같은 훅에 섞여 있다
+  const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => notificationBus.subscribe(setToast), []);
+
+  return { formData, setFormData, isDisabled, handleSubmit, toast };
 }
 
-// ✅ 로직 종류별로 별도 훅으로 분리하고, 컴포넌트는 가벼운 형태만 유지한다
-function useOrderFormState(initialData: OrderData) { /* formData, setFormData */ }
-function useOrderValidation(formData: OrderData) { /* isDisabled */ }
-function useOrderSubmit(formData: OrderData) { /* handleSubmit */ }
+// ✅ 하나의 기능은 하나의 훅으로 묶는다. 훅 내부가 복잡해도 반환 인터페이스는 간단하게 유지한다
+function useOrderEditForm(initialData: OrderData) {
+  const [formData, setFormData] = useState(initialData);
+  const isDisabled = !formData.title.trim();
+  const handleSubmit = () => OrderService.update(formData);
+  return { formData, setFormData, isDisabled, handleSubmit };
+}
 
 function OrderEditForm() {
-  const { formData, setFormData } = useOrderFormState(initialData);
-  const { isDisabled } = useOrderValidation(formData);
-  const { handleSubmit } = useOrderSubmit(formData);
+  const { formData, setFormData, isDisabled, handleSubmit } = useOrderEditForm(initialData);
   return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
+
+### Store, 도메인 훅, 컴포넌트 계층
+
+전역 상태 저장소(Store)를 쓰는 프로젝트는 계층이 하나 더 생긴다. Store는 상태와 primitive
+setter만 가지고, API 호출이나 여러 단계로 이뤄진 도메인 동작은 도메인 훅이 가진다. 컴포넌트가
+Store에서 값을 꺼내 다른 훅에 파라미터로 다시 주입하는 wiring은 금지한다. 도메인 훅이 내부
+에서 직접 Store를 쓴다. 도메인 훅은 Store API를 그대로 재노출하지 않고, 컴포넌트가 실제로
+수행하는 행위 단위 API로 변환해서 반환한다.
+
+Store의 API는 상태 이름과 그 상태를 바꾸는 동사로만 구성된다(`items`, `addItem`,
+`removeItem`, `updateQuantity`, `clearItems`). `checkout`, `applyCoupon`,
+`calculateTotal`, `order` 같은 도메인 행위는 Store가 아니라 도메인 훅에 둔다.
+
+```tsx
+// ❌ 컴포넌트가 Store와 훅을 조립하는 wiring 계층이 된다
+const { addOutput, addError, clearLogs, setIsLoading } = useTerminalStore();
+const { executeCommand } = useTerminalCommands({
+  addOutput, addError, clearLogs, setLoading: setIsLoading,
+});
+
+// ✅ 도메인 훅이 내부에서 Store를 직접 쓰고, 행위 단위 API만 노출한다
+function useTerminal() {
+  const { addOutput, addError, clearLogs, setIsLoading } = useTerminalStore();
+  function executeCommand(input: string) { /* ... */ }
+  return { logs, input, isExecuting, changeInput, executeCommand };
+}
+```
+
+훅은 기본 훅(도메인과 무관한 범용 훅, 예: `useFetch`, `useResponsive`)과 기능 훅(하나의
+기능을 전담하는 훅, 예: `useTerminal`, `useAddChildForm`)으로 나뉜다. 기능 훅에
+`onSuccess`/`onError` 콜백을 주입해서 컴포넌트의 UI 동작(모달 닫기, 새로고침)을 그 안에서
+실행시키지 않는다. 훅은 결과 상태만 반환하고, 그 상태로 무엇을 할지는 호출부가 결정한다.
+
+```tsx
+// ❌ 훅에 onSuccess 콜백을 주입해 UI 오케스트레이션을 위탁한다
+const form = useAddChildForm({
+  accountId,
+  onSuccess: () => { setOpen(false); router.refresh(); },
+});
+
+// ✅ 훅은 결과만 반환하고, 호출부가 그 결과에 따라 행동한다
+const form = useAddChildForm({ accountId });
+const ok = await form.submit();
+if (ok) { setOpen(false); router.refresh(); }
+```
+
+기능 훅과 Store의 반환 형태는 프로젝트 전체에서 일관되게 유지한다. 예를 들어 상태와
+행위를 `{ state, actions }`로 묶는 규칙을 정했으면 모든 기능 훅이 그 구조를 따른다.
+
+```tsx
+function useCart() {
+  return {
+    state: { items, totalPrice },
+    actions: { increaseQuantity, decreaseQuantity, removeFromCart, clearCart },
+  };
+}
+```
+
+Store의 action은 상태를 어떻게 바꿀지를, 도메인 훅의 action은 사용자가 무엇을 할 수
+있는지를 표현한다. Store가 `updateQuantity(itemId, quantity)` 하나만 제공해도, 도메인
+훅은 그걸로 `increaseQuantity`/`decreaseQuantity`처럼 행위 단위 action을 만든다. 이
+둘을 반환값에서 섞지 않는다. Store 원시 API와 변환된 도메인 action을 같은 객체에 함께
+반환하면 훅의 추상화 수준이 무너진다. 컴포넌트가 도메인 전체가 아니라 일부만 필요하면
+`useCartSummary()`처럼 더 좁은 목적의 훅을 따로 둘 수 있다.
 
 ---
 
@@ -147,8 +223,8 @@ const result = compute();
 
 ### 1.7 컴포넌트/모듈 크기
 
-컴포넌트는 항상 가벼운 형태를 유지한다. 서로 다른 종류의 로직은 하나의 훅에 몰아넣지 않고
-로직별로 각각 분리한다.
+컴포넌트는 항상 가벼운 형태를 유지한다. 복잡한 로직은 컴포넌트 밖으로 훅으로 옮긴다. 훅은
+기능이나 도메인 단위로 묶고, 서로 무관한 기능을 한 훅에 섞지 않는다.
 
 다음 조건이면 분리한다:
 - 상태가 많다
@@ -310,6 +386,10 @@ const META = {
 - 같은 유틸리티 로직을 파일마다 인라인으로 다시 구현하지 않는다
 - 아직 한 곳에서만 쓰는 로직을 예측만으로 미리 `utils/`로 빼지 않는다. 실제로 2곳 이상에서
   필요해졌을 때 추출한다
+- `utils/` 안에서도 관심사별로 파일을 나눈다(`date.ts`, `number.ts`, `string.ts` 등). 하나의
+  `utils.ts`에 다 몰아넣지 않는다
+- 유틸리티 함수는 순수 함수라 테스트하기 쉽다. 대상 파일과 나란히 테스트를 둔다(`date.ts` +
+  `date.test.ts`)
 
 ```typescript
 // ❌ 한 곳에서만 쓰는데 미리 utils/로 추출
@@ -492,6 +572,9 @@ JSX 안에 `<svg>` 태그를 인라인으로 작성하지 않는다.
 ### 5.1 최소 API
 
 - 하나의 값으로 유추 가능한 prop은 제거
+- 훅, 컴포넌트, Store를 설계하거나 리뷰할 때마다 이 param과 return이 정말 필요한지
+  되묻는다. 훅의 param과 return, 컴포넌트의 param, Store의 param과 return 전부
+  대상이다
 
 ### 5.2 단일 진입점
 
@@ -548,6 +631,20 @@ components/
     ├── ResultBadge.tsx
     ├── resultBadge.module.css
     └── type.ts
+```
+
+### 5.6 Props는 이름 있는 타입으로 정의
+
+함수 시그니처에 인라인 객체 타입 리터럴을 쓰지 않는다. 항상 이름 있는 타입으로 선언한다.
+
+```tsx
+// ❌
+export function AddChildForm({ accountId }: { accountId: string }) {}
+
+// ✅
+type AddChildFormProps = { accountId: string };
+
+export function AddChildForm({ accountId }: AddChildFormProps) {}
 ```
 
 ---
@@ -822,6 +919,17 @@ else { ... }
 - [ ] 불필요한 최적화가 있는가?
 - [ ] 데이터로 표현 가능한 로직을 코드로 처리하고 있지 않은가?
 
+**Hook / Store**
+- [ ] 서로 무관한 기능이 한 훅에 섞여 있는가?
+- [ ] 훅 이름이 기본 훅(범용)인지 기능 훅(도메인 전담)인지 이름만으로 구분되는가?
+- [ ] 컴포넌트가 Store에서 값을 꺼내 다른 훅에 파라미터로 다시 주입하는가?
+- [ ] 기능 훅이 Store API를 행위 단위로 변환하지 않고 그대로 재노출하는가?
+- [ ] 기능 훅에 `onSuccess`/`onError` 콜백을 주입해 컴포넌트의 UI 동작을 훅 안에서 실행시키는가?
+- [ ] Store API에 `checkout`, `applyCoupon` 같은 다단계 도메인 행위가 들어가 있는가?
+- [ ] 기능 훅과 Store의 반환 형태가 프로젝트 안에서 서로 다른가?
+- [ ] 훅 반환값에 Store 원시 API와 변환된 도메인 action이 함께 섞여 있는가?
+- [ ] 훅, 컴포넌트, Store의 param과 return이 실제로 필요한 것만 남아 있는가?
+
 **스타일링**
 - [ ] JSX `style` prop에 CSS 속성값이 직접 들어가 있지 않은가? (CSS 변수만 허용)
 - [ ] `buildCls`를 JSX 속성에 인라인으로 쓰지 않고 변수로 추출했는가?
@@ -834,6 +942,7 @@ else { ... }
 - [ ] variant가 여러 개라면 Base + Named Export 패턴을 적용했는가?
 - [ ] 컴포넌트 타입은 `type.ts`에 분리했는가?
 - [ ] prop 중 한 값으로 다른 값을 유추할 수 있는 중복 prop이 없는가?
+- [ ] Props를 함수 시그니처에 인라인 객체 타입 리터럴로 받지 않고 이름 있는 타입으로 정의했는가?
 
 **정리**
 - [ ] 사용하지 않는 import·export가 없는가?
@@ -857,6 +966,9 @@ else { ... }
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-08-17 | `references/{ko,en}/core/code-hygiene.md`가 utils/ 규칙만 남고 기존 import 정리/fallback 금지 규칙이 누락됐던 걸 복구, Hook/Store 예시를 장바구니로 통일, 추상화 수준 구분(Store=상태 변경/Domain=사용자 행위)과 목적별 좁은 훅 허용 규칙 추가, 문서 구조 정합성(고아 bullet, 체크리스트/개정 이력 누락) 정리 |
+| 2026-08-17 | Props 이름 있는 타입 규칙(5.6) 추가, param/return 최소주의를 훅, 컴포넌트, Store 전체로 확장, 기능 훅/Store 반환 형태 일관성 규칙 추가 |
+| 2026-08-17 | 훅 단일 책임 기준을 도메인 단위로 재정의(기술적 동작 개수 기준 폐기), Store/도메인 훅/컴포넌트 계층 원칙과 wiring, 콜백 위탁 안티패턴 추가 |
 | 2026-08-16 | utils/ 분리 규칙(2.5)에 조기 추출 금지(2곳 이상에서 필요할 때만 추출) caveat 추가 |
 | 2026-08-16 | 코드 정리 원칙에 범용 유틸리티 utils/ 분리 규칙(2.5) 추가 |
 | 2026-08-16 | 핵심 철학에 복잡성 은닉 원칙 추가, 에러 처리 예시를 도메인 함수 은닉 단계까지 확장 |
