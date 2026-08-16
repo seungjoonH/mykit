@@ -11,7 +11,7 @@
 
 ## Don't
 - `tabIndex`/키보드 핸들러 없는 클릭 가능한 `div`를 쓰지 않는다.
-- `<input type="checkbox">`, `<select>`를 화면 코드에 직접 사용하지 않는다 — 프로젝트 SSOT 컴포넌트로 교체한다. `<select>`는 커스터마이징과 브라우저 간 UX 차이 때문에 원칙적으로 금지하며, 대체하는 커스텀 Dropdown도 native와 동등한 키보드 조작·접근성을 보장한다.
+- `<input type="checkbox">`, `<select>`를 화면 코드에 직접 사용하지 않는다. 프로젝트 SSOT 컴포넌트로 교체한다. `<select>`는 커스터마이징과 브라우저 간 UX 차이 때문에 원칙적으로 금지하며, 대체하는 커스텀 Dropdown도 키보드 조작을 포함해 native와 동등한 접근성을 보장한다.
 
 ## 예시
 ```tsx

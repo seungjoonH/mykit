@@ -120,6 +120,8 @@ function CardWithStyle({ style }: { style?: CSSProperties }) {
 
 ## Hook 경계
 
+- 컴포넌트는 항상 가벼운 형태를 유지한다. 내부에 생기는 복잡한 로직은 로직 종류별로 각각
+  별도의 훅(`use*`)으로 분리하고, 여러 로직을 훅 하나에 몰아넣지 않는다.
 - hook은 상태 전이와 계산을 담당하고 JSX를 반환하지 않는다.
 - hook은 `CSSProperties` 전체를 반환하지 않는다. 필요한 값만 반환하고 컴포넌트가 style을 조립한다.
 - 범용 hook 결과를 다시 다른 hook 인자로 전달하는 대신, 필요한 hook이 내부에서 직접 호출한다.

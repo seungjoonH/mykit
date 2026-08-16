@@ -5,6 +5,8 @@
 - Never swallow errors silently.
 - Manage error codes/messages through centralized global constants.
 - When request and failure handling (parsing, error mapping) repeats across call sites, consolidate it into one client module.
+- Wrapping the client module is not the finish line. Call sites (components, hooks) never touch URL, method, header, or try/catch directly; they only call functions with domain meaning.
+- API call functions for the same resource are not scattered individually - bundle them into one service module to keep the code cohesive.
 
 ## Do
 - Throw or return explicit domain error.
@@ -13,6 +15,7 @@
 ## Don't
 - Use empty catch blocks.
 - Never re-implement try/catch and response parsing per call site.
+- Never let a call site assemble the client module's URL, method, and header directly.
 
 ## Do Example
 ```ts
@@ -41,6 +44,18 @@ const updateUser = (id: string, data: UserInput) =>
   request<User>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 ```
 
+```ts
+// ✅ a domain function fully hides URL, method, header, and failure handling
+const UserService = {
+  get: (id: string) => request<User>(`/api/users/${id}`),
+  update: (id: string, data: UserInput) =>
+    request<User>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+};
+
+// the call site is left with intent only
+await UserService.update(id, data);
+```
+
 ## Don't Example
 ```ts
 try { event = JSON.parse(raw); }
@@ -59,6 +74,15 @@ async function updateUser(id: string, data: UserInput) {
   const res = await fetch(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
   if (!res.ok) throw new Error("failed"); // same failure handling repeated
   return res.json();
+}
+```
+
+```ts
+// ❌ still not enough - the client is unified, but the call site still assembles URL, method, and failure handling
+try {
+  await request(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+} catch (err) {
+  setError(err instanceof Error ? err.message : "The request failed.");
 }
 ```
 
