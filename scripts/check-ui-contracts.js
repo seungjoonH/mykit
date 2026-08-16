@@ -38,12 +38,18 @@ const languageContracts = {
     component: [/take priority over primitive reuse/i, /Repeated flex\/grid is a signal/i],
     screen: [/Visual QA/i, /Content QA/i, /Classify visible text/i, /Functional completion and design completion are separate/i],
     content: [/platform copy/i, /runtime tenant\/user data/i, /Unicode symbols/i, /safety-critical guidance/i],
+    errorHandling: [/keep the code cohesive/i, /never touch URL, method, header/i],
+    accessibility: [/SSOT component/i, /banned outright/i],
+    codeHygiene: [/used in only one place/i, /keep domain-agnostic pure functions/i],
   },
   ko: {
     css: [/내부 클래스 적용/, /public 스타일 탈출구/, /feature\/page가 화면 고유 layout/],
     component: [/primitive 재사용보다 우선/, /직접 CSS 사용 금지가 아니다/],
     screen: [/Visual QA/, /Content QA/, /사용자 노출 문구를 플랫폼 카피/, /기능 완료와 디자인 완료를 별도로 판정/],
     content: [/플랫폼 공통 카피/, /tenant\/user 런타임 데이터/, /Unicode 기호/, /안전에 필요한 설명/],
+    errorHandling: [/응집성을 지킨다/, /URL, method, header/],
+    accessibility: [/SSOT 컴포넌트가 있는지 먼저 확인/, /원칙적으로 금지/],
+    codeHygiene: [/한 곳에서만 쓰는 로직/, /utils\//],
   },
 };
 
@@ -53,19 +59,27 @@ for (const [language, contracts] of Object.entries(languageContracts)) {
     const component = await read(`${sourceRoot}/${language}/frontend/ui/component.md`);
     const screen = await read(`${sourceRoot}/${language}/frontend/ui/screen.md`);
     const content = await read(`${sourceRoot}/${language}/frontend/content/ui-copy.md`);
+    const errorHandling = await read(`${sourceRoot}/${language}/core/error-handling.md`);
+    const accessibility = await read(`${sourceRoot}/${language}/frontend/ui/accessibility.md`);
+    const codeHygiene = await read(`${sourceRoot}/${language}/core/code-hygiene.md`);
     includesAll(css, contracts.css, `${sourceRoot} ${language} CSS Module`);
     includesAll(component, contracts.component, `${sourceRoot} ${language} component`);
     includesAll(screen, contracts.screen, `${sourceRoot} ${language} screen`);
     includesAll(content, contracts.content, `${sourceRoot} ${language} UI copy`);
+    includesAll(errorHandling, contracts.errorHandling, `${sourceRoot} ${language} error handling`);
+    includesAll(accessibility, contracts.accessibility, `${sourceRoot} ${language} accessibility`);
+    includesAll(codeHygiene, contracts.codeHygiene, `${sourceRoot} ${language} code hygiene`);
   }
 }
 
 const skill = await read("skills/mykit/SKILL.md");
 const addComponent = await read("skills/mykit/actions/add-component.md");
 const buildScreen = await read("skills/mykit/actions/build-screen.md");
-includesAll(skill, [/actions\/build-screen\.md/, /references\/en\/frontend\/ui\/screen\.md/], "skill routing");
+const codeRefactoring = await read("skills/mykit/actions/code-refactoring.md");
+includesAll(skill, [/actions\/build-screen\.md/, /references\/en\/frontend\/ui\/screen\.md/, /actions\/code-refactoring\.md/], "skill routing");
 includesAll(addComponent, [/build-screen\.md/, /route\/page/], "add-component routing");
 includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /Content QA/, /금지 문자열을 자동 검색/, /기능 완료와 디자인 완료를 별도로 판정/], "build-screen action");
+includesAll(codeRefactoring, [/review-code-style\.md/, /디자인 시스템 SSOT/, /utils\//, /dirty worktree/, /프론트엔드\(React 계열\) 전용/, /grep 키워드/], "code-refactoring action");
 
 const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "mykit-ui-contracts-"));
 try {
@@ -92,6 +106,18 @@ try {
       path.join(outputRoot, "playbook/frontend/content/ui-copy.md"),
       "utf8",
     );
+    const generatedErrorHandling = await fs.readFile(
+      path.join(outputRoot, "playbook/core/error-handling.md"),
+      "utf8",
+    );
+    const generatedAccessibility = await fs.readFile(
+      path.join(outputRoot, "playbook/frontend/ui/accessibility.md"),
+      "utf8",
+    );
+    const generatedCodeHygiene = await fs.readFile(
+      path.join(outputRoot, "playbook/core/code-hygiene.md"),
+      "utf8",
+    );
     const generatedIndex = await fs.readFile(
       path.join(outputRoot, "playbook/PLAYBOOK.index.yaml"),
       "utf8",
@@ -101,6 +127,9 @@ try {
     includesAll(generatedComponent, languageContracts[language].component, `generated ${language} component`);
     includesAll(generatedScreen, languageContracts[language].screen, `generated ${language} screen`);
     includesAll(generatedContent, languageContracts[language].content, `generated ${language} UI copy`);
+    includesAll(generatedErrorHandling, languageContracts[language].errorHandling, `generated ${language} error handling`);
+    includesAll(generatedAccessibility, languageContracts[language].accessibility, `generated ${language} accessibility`);
+    includesAll(generatedCodeHygiene, languageContracts[language].codeHygiene, `generated ${language} code hygiene`);
     includesAll(generatedIndex, [/id: frontend-screen-change/, /action: build-screen/, /frontend\/ui\/screen\.md/, /frontend\/content\/ui-copy\.md/], `generated ${language} index`);
   }
 
