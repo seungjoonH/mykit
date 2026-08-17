@@ -14,17 +14,54 @@
 - 기능 훅과 Store의 반환 형태는 프로젝트 전체에서 일관되게 유지한다. Store의 action은 상태 변경을, 도메인 훅의 action은 사용자 행위를 표현한다. 이 둘을 같은 반환값에 섞지 않는다.
 - 컴포넌트가 도메인 전체가 아니라 일부만 필요하면 더 좁은 목적의 훅을 따로 둘 수 있다(예: `useCartSummary()`).
 - 훅, 컴포넌트, Store를 설계하거나 리뷰할 때마다 이 param과 return이 정말 필요한지 되묻는다.
+- Server Component는 훅을 못 쓴다고 로직을 다 한 함수에 두지 않는다. 가드, 파라미터 파싱, 데이터 fetch, 파생 계산은 페이지 전용 로더 함수로 빼고, 컴포넌트는 로더 결과를 렌더링만 한다.
+- 변환 규칙이 거의 같은 항목을 JSX prop 안에 손으로 여러 개 나열하지 않는다. 선언적 설정 배열로 뽑고 `map`으로 만든다.
+- 의미 단위로 닫는다. `TextField`에 `label={t('name')}`을 거는 것은 `Chip`에 tone을 걸며 `StatusChip`을 안 만드는 것과 같다. `NameTextForm`처럼 구체화한다.
+- `feature`/`page`는 interactive primitive를 직접 쓰지 않는다.
 
 ## Do
-- JSX 반환 전에 계산 값과 핸들러를 미리 정리한다.
+- JSX 반환 전에 계산 값과 핸들러를 미리 정리한다. `handleXxx`는 본문에 두고 JSX에는 참조만 연결한다. `onClick={() => ...}`는 `map`이어도 금지다.
 
 ## Don't
 - JSX 안에 복잡한 IIFE나 중첩 분기를 직접 넣지 않는다.
 - 함수 시그니처에 인라인 객체 타입 리터럴로 props를 받지 않는다. 항상 이름 있는 타입으로 정의한다.
 - 컴포넌트 본문에서 `fetch`를 직접 호출하지 않는다. 도메인 서비스 함수(예: `UserService.update()`)를 통해 호출하고, URL, method, header 조립을 컴포넌트에 노출하지 않는다.
 - 부수효과 없는 표현식 구문(no-op statement)을 남기지 않는다.
+- `feature`/`page` JSX에 `TextField`를 직접 두고 `label`/`type`/`required`를 밖에서 채우지 않는다.
 
 ## 예시
+```tsx
+// ❌ 거의 같은 변환 규칙을 가진 항목을 손으로 하나씩 나열한다
+<DefinitionList items={[
+  { label: t('field.name'), value: entity.name?.trim() || t('notSet') },
+  { label: t('field.email'), value: entity.email?.trim() || t('notSet') },
+  { label: t('field.phone'), value: entity.phone?.trim() || t('notSet') },
+  // ... 20여 개 더
+]} />
+
+// ✅ 필드 목록을 선언적 설정으로 뽑고 map으로 생성한다
+const DETAIL_FIELDS = [
+  { key: 'name', labelKey: 'field.name' },
+  { key: 'email', labelKey: 'field.email' },
+  { key: 'phone', labelKey: 'field.phone' },
+] as const;
+
+const items = DETAIL_FIELDS.map(({ key, labelKey }) => ({
+  label: t(labelKey),
+  value: entity[key]?.trim() || t('notSet'),
+}));
+
+<DefinitionList items={items} />
+```
+
+```tsx
+// ❌ feature가 interactive primitive를 직접 조립한다
+<TextField label={t('name')} value={fields.name} onChange={handleNameChange} />
+
+// ✅ 의미 단위로 닫는다
+<NameTextForm value={fields.name} onChange={handleNameChange} />
+```
+
 ```tsx
 function ResultPanel({ items }: Props) {
   const visibleItems = items.filter((item) => item.visible);
@@ -41,7 +78,7 @@ function TicketEditForm({ initialData }: Props) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(formData) });
   };
@@ -53,7 +90,7 @@ function TicketEditForm({ initialData }: Props) {
 function useTicketEditForm(initialData: TicketEditData) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     return TicketService.update(formData);
   };
@@ -75,6 +112,7 @@ function TicketEditForm({ initialData }: Props) {
 - feature는 도메인 고유 배치, 밀도, 위계와 상태 표현을 소유할 수 있다. page는 shell, navigation, 큰 영역 조합과 page-level responsive layout을 소유할 수 있다.
 - 반복되는 flex/grid는 layout primitive 추출을 검토하는 신호이지 feature/page의 직접 CSS 사용 금지가 아니다.
 - 승인된 UI 요소나 viewport 동작을 제거하는 것은 단순화가 아니라 범위 변경이다.
+- 필드는 `NameTextForm`처럼 의미 단위로 닫는다. `feature`/`page`는 interactive primitive를 직접 쓰지 않는다.
 
 ## 테스트 범위
 - 컴포넌트가 실제로 소유하는 렌더링 상태만 검증하며 체크리스트를 위해 상태를 만들지 않는다.
