@@ -6,7 +6,7 @@
 - Never expose secrets in code or logs.
 
 ## Do
-- Enforce authz checks in guards/middleware before handlers.
+- Enforce authz checks in guards/middleware before handlers. Area guards live in layout. Resource guards live in domain. APIs are always authorized. Never hardcode `redirect("/login")`.
 
 ## Don't
 - Store or print tokens/keys/passwords in plain text.
