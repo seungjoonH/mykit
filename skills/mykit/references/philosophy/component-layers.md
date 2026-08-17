@@ -37,9 +37,10 @@ surface/elevation, focus, 상태 표현, breakpoint, icon 규칙을 확인한다
 
 - `interactive`는 `design`을 감싸 동작과 접근성 계약을 더한다.
 - `composed`는 `layout`, `design`, `interactive`를 조합해 반복 UI를 만든다.
-- `feature`는 `composed`와 도메인 hook/store/data를 연결한다.
+- `feature`는 닫힌 의미 단위와 도메인 hook/store/data를 연결한다. `TextField`/`ChipButton` 같은 interactive primitive를 직접 import하지 않는다.
 - 하위 계층이 상위 계층을 import하지 않게 한다.
 - 상위 계층이 하위 계층을 건너뛰고 native element를 새로 구현하지 않게 한다. 이미 있는 `design`/`interactive` 컴포넌트를 두고 별도 스타일로 같은 시각·동작을 중복 정의하면 계층을 건너뛴 것이다.
+- 반대 방향도 금지한다. `feature`/`page`가 `interactive`를 직접 쓰고 `label`/`type`/`required`를 밖에서 채우면 계층을 위로 건너뛴 것이다. 그 조립은 닫힌 의미 단위(`NameTextForm`, `StatusForm`)가 한다.
 
 ## 관계 어휘
 
@@ -48,7 +49,15 @@ surface/elevation, focus, 상태 표현, breakpoint, icon 규칙을 확인한다
 - 확장(Expand): 같은 디자인 역할을 유지한 채 동작이나 props를 더한다. `Icon` → `IconButton`.
 - 사용(Use): 다른 컴포넌트를 내부 부품으로 쓰되, 자신의 정체성은 그대로 유지한다. `Chip`이 내부에서 `Icon`을 쓰지만 여전히 `Chip`이다.
 - 조합(Compose): 서로 다른 컴포넌트를 엮어 제3의 맥락을 만든다. `DocRow` = `Icon` + `SearchChipButton` + `GotoButton`.
-- 구체화(Specify): 범용 컴포넌트의 파라미터를 좁혀 특정 용도로 특수화한다. `Chip` → `StatusChip`.
+- 구체화(Specify): 범용 컴포넌트의 파라미터를 좁혀 특정 용도로 특수화한다. `Chip` → `StatusChip`. `TextField` → `NameTextForm`. Specify는 색/variant 이름 붙이기가 아니다.
+
+## 의미 단위로 닫는다
+
+전문은 `meaning-unit.md`다. UI 작업이면 그 슬라이스를 연다. 이 파일의 계층 표만으로
+Specify를 variant 전용으로 읽지 않는다.
+
+mustHold. 필드는 `NameTextForm`처럼 의미 단위로 닫는다. `feature`/`page`는 `TextField`를
+직접 쓰지 않는다.
 
 ## Layout 계약
 
@@ -118,198 +127,11 @@ function CardWithStyle({ style }: { style?: CSSProperties }) {
 
 - Primitive(`layout`, `design`, `interactive`)는 props contract, 실제로 소유하는 상태, 접근성, token 적용을 확인한다.
 - `composed`는 반복되는 의미 단위와 자신이 소유하는 필요한 상태를 확인한다.
-- `feature`는 도메인 작업 완결성, 화면 고유 hierarchy, 실제 데이터 상태를 확인한다.
+- `feature`는 도메인 작업 완결성, 화면 고유 hierarchy, 실제 데이터 상태를 확인한다. JSX에 `TextField` 같은 interactive primitive가 남아 있으면 완료가 아니다.
 - `page`는 spec/wireframe 구조, shell/navigation, 주요 viewport, 실제 브라우저 visual QA를 확인한다.
 - 모든 계층에 loading/error/empty 상태를 기계적으로 만들지 않는다. 해당 컴포넌트가 실제로 소유하는 상태만 검증한다.
 - 기능이 동작한다는 사실은 화면 디자인이 완료됐다는 증거가 아니다.
 
-## Hook 경계
+## 훅과 Store
 
-- 컴포넌트는 항상 가벼운 형태를 유지한다. 내부에 생기는 복잡한 로직은 컴포넌트 밖으로
-  훅(`use*`)으로 옮긴다.
-- 훅의 책임은 상태나 effect 개수가 아니라 기능이나 도메인 단위로 판단한다. 하나의 기능에
-  속한 상태, effect, 이벤트 리스너는 여러 개여도 한 훅에 있어도 된다. 서로 무관한 기능을
-  한 훅에 섞지 않는 것이 진짜 기준이다. 훅 내부가 복잡해도 반환하는 값과 함수는 간단하게
-  유지한다.
-- 책임 경계를 한 번 정했으면 로직을 훅 안팎으로 반복해서 옮기지 않는다. 새 기능이 생기면
-  기존 훅에 무관하게 끼워 넣지 않고 새 훅으로 분리한다.
-- hook은 상태 전이와 계산을 담당하고 JSX를 반환하지 않는다.
-- hook은 `CSSProperties` 전체를 반환하지 않는다. 필요한 값만 반환하고 컴포넌트가 style을 조립한다.
-- 범용 hook 결과를 다시 다른 hook 인자로 전달하는 대신, 필요한 hook이 내부에서 직접 호출한다.
-- 컴포넌트별 hook은 그 컴포넌트 기능만 담당한다.
-
-## Store / 도메인 훅 / 컴포넌트 계층
-
-전역 상태 저장소(Zustand, Redux, Jotai 등)를 쓰는 프로젝트에서는 컴포넌트와 훅 사이에
-Store 계층이 하나 더 생긴다. 세 계층의 책임을 명확히 나눈다.
-
-- **Store**: 상태와 그 상태를 바꾸는 primitive한 setter만 가진다. Store API는 상태
-  이름과 그 상태를 바꾸는 동사로만 구성된다(`items`, `addItem`, `removeItem`,
-  `updateQuantity`, `clearItems`). 부수효과 없는 파생 읽기 전용 selector는 둘 수 있다.
-  API 호출이나 여러 단계로 이뤄진 도메인 동작(`checkout`, `applyCoupon`,
-  `calculateTotal`, `order`)은 Store가 아니라 도메인 훅이 가진다.
-- **도메인 훅**(`useCart` 등): 해당 도메인의 action과 흐름을 전부 품는다. 내부에서
-  필요하면 Store, 저수준 훅(`useFetch`), 순수 유틸을 자유롭게 조합한다. 이 내부 의존성을
-  컴포넌트가 알 필요는 없다.
-- **컴포넌트**: 도메인 훅 하나만 바라본다. Store와 다른 훅을 컴포넌트가 직접 조립하지
-  않는다.
-
-### 훅은 기본 훅과 기능 훅으로 구분한다
-
-훅 이름만 보고 도메인과 무관한 범용 훅인지, 특정 기능을 전담하는 훅인지 구분할 수 있어야
-한다.
-
-- **기본 훅**: 도메인과 무관한 범용 훅이다. 어떤 기능에서든 재사용된다. 예: `useFetch`,
-  `useResponsive`, `useLanguage`.
-- **기능 훅**: 하나의 기능을 전담한다. 그 기능의 상태와 action을 전부 소유한다. 예:
-  `useTerminal`, `useWindow`, `useAddChildForm`.
-
-기능 훅이 내부에서 기본 훅을 조합하는 것은 정상이다. 반대로 기본 훅이 특정 기능의 개념을
-알아서는 안 된다.
-
-### 기능 훅에 콜백을 주입해서 UI 오케스트레이션을 위탁하지 않는다
-
-`onSuccess`/`onError` 같은 콜백을 기능 훅에 주입해서 컴포넌트의 UI 동작(모달 닫기, 페이지
-새로고침)을 그 안에서 실행시키지 않는다. 이건 Store 값을 꺼내 다른 훅에 다시 주입하는
-wiring 안티패턴과 방향만 반대일 뿐 같은 문제다. 훅은 자기 결과 상태만 반환하고, 그 상태에
-따라 무엇을 할지는 호출부가 결정한다.
-
-```tsx
-// ❌ 훅에 onSuccess 콜백을 주입해 UI 오케스트레이션을 위탁한다
-const form = useAddChildForm({
-  accountId,
-  onSuccess: () => {
-    setOpen(false);
-    router.refresh();
-  },
-});
-
-function close() {
-  setOpen(false);
-  form.reset();
-}
-// setOpen(false)가 onSuccess와 close 두 곳에 흩어져 있다
-
-// ✅ 훅은 결과 상태만 반환하고, 호출부가 그 결과에 따라 행동한다
-const form = useAddChildForm({ accountId });
-
-async function submit(event: FormEvent) {
-  event.preventDefault();
-  const ok = await form.submit();
-  if (ok) {
-    setOpen(false);
-    router.refresh();
-  }
-}
-
-function close() {
-  setOpen(false);
-  form.reset();
-}
-```
-
-### 반환 형태는 프로젝트 전체에서 일관되게 유지한다
-
-기능 훅과 Store의 반환 형태를 통일한다. 예를 들어 상태와 행위를 `{ state, actions }`로
-묶는 규칙을 정했으면 모든 기능 훅이 그 구조를 따른다.
-
-```tsx
-function useCart() {
-  return {
-    state: { items, totalPrice },
-    actions: { increaseQuantity, decreaseQuantity, removeFromCart, clearCart },
-  };
-}
-```
-
-### Store와 도메인 훅은 추상화 수준이 다르다
-
-Store의 action은 상태를 어떻게 바꿀지를 표현하고, 도메인 훅의 action은 사용자가 무엇을
-할 수 있는지를 표현한다. Store가 `updateQuantity(itemId, quantity)` 하나만 제공해도,
-도메인 훅은 그걸로 `increaseQuantity(itemId)`/`decreaseQuantity(itemId)`처럼 사용자
-행위 단위 action을 만들어 노출한다.
-
-```text
-Store action    = 상태 변경
-Domain action   = 사용자/도메인 행위
-```
-
-### 목적별로 더 좁은 훅을 만들 수도 있다
-
-컴포넌트가 도메인 전체가 아니라 일부만 필요하면, 도메인 훅 하나를 억지로 다 쓰게 하지
-않고 더 좁은 목적의 훅을 따로 둘 수 있다. 이건 로직을 기술적 종류별로 쪼개는 것과 다르다.
-같은 도메인의 좁은 읽기 전용 view일 뿐이다.
-
-```tsx
-// 장바구니 개수만 필요한 컴포넌트
-const { state: { itemCount } } = useCartSummary();
-```
-
-### 흔한 위반: wiring 안티패턴
-
-컴포넌트가 Store에서 값을 꺼내 다른 커스텀 훅에 파라미터로 다시 주입하는 패턴을 금지한다.
-이 흐름이 나타나면 컴포넌트가 Store와 훅을 조립하는 wiring 계층이 된 것이다.
-
-```text
-Store → 컴포넌트가 꺼냄 → 다른 훅에 다시 주입 → 그 훅에서 사용
-```
-
-```tsx
-// ❌ 컴포넌트가 Store와 훅을 조립한다
-const { addItem, removeItem, updateQuantity } = useCartStore();
-const { increaseQuantity } = useCartActions({ addItem, removeItem, updateQuantity });
-
-// ✅ 도메인 훅이 내부에서 직접 Store를 쓴다
-function useCart() {
-  const { items, addItem, removeItem, updateQuantity, clearItems } = useCartStore();
-  function increaseQuantity(itemId: number) { /* ... */ }
-  return { state: { items }, actions: { increaseQuantity } };
-}
-```
-
-콜백을 파라미터로 주입받는 훅이 전부 이 위반은 아니다. 판별 기준은 그 훅이 내부에서
-이미 특정 도메인 개념(`addItem`, `updateQuantity` 같은)을 전제하고 있는지다. 전제하고
-있다면 겉보기만 독립적인 위장된 DI다. 도메인을 몰라도 되는 진짜 범용 훅만 콜백을
-파라미터로 받는다.
-
-### 도메인 훅은 Store를 그대로 재노출하지 않는다, 두 추상화 수준을 섞지도 않는다
-
-Store의 API를 거의 그대로 다시 반환하면 도메인 훅이 단순 wrapper가 된다. Store 원시
-API와 변환된 도메인 action을 같은 반환값에 함께 섞는 것도 같은 문제다. 훅이 반환하는
-API는 한 가지 추상화 수준만 가져야 한다.
-
-```tsx
-// ❌ Store 원시 API와 변환된 도메인 action이 뒤섞여 있다
-return {
-  items, setItems, addItem, removeItem, updateQuantity, clearItems,
-  totalPrice, increaseQuantity, decreaseQuantity, removeFromCart, clearCart,
-};
-
-// ✅ 상태 변경(Store)이 아니라 사용자 행위(Domain)만 노출한다
-return {
-  state: { items, totalPrice },
-  actions: { increaseQuantity, decreaseQuantity, removeFromCart, clearCart },
-};
-```
-
-### 파라미터도 최소화한다
-
-도메인 훅은 자기 내부 의존성을 호출자에게 요구하지 않는다. 실제 외부 입력이 필요한
-경우에만 받는다.
-
-```tsx
-// ❌ 호출자가 훅의 내부 의존성을 전부 조립해서 넘겨야 한다
-useTerminalCommands({ addOutput, addError, clearLogs, setLoading });
-
-// ✅ 필요 없으면 파라미터가 없고, 진짜 외부 입력만 받는다
-useTerminal();
-useTerminal({ sessionId });
-```
-
-### 상태는 그 상태를 실제로 소유하는 계층에만 둔다
-
-같은 의미의 상태를 여러 계층에 중복해서 두지 않는다. 하나의 진짜 출처만 둔다. `useFetch`가
-이미 `loading`을 반환하는데 도메인 Store에 또 `isLoading`을 따로 두면 두 상태가 어긋날
-수 있다. 도메인 계층이 진짜로 소유하는 상태(예: 지금 명령을 실행 중이라 다른 입력을
-못 받는 상태)라면 `isLoading`처럼 범용적인 이름 대신 `isExecuting`처럼 도메인 의미가
-드러나는 이름을 쓴다.
+전문은 `hooks-store.md`다. `audit-hooks`가 연다. 기본 UI 로드에서 이 장을 읽지 않는다.
