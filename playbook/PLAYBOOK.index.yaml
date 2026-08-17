@@ -185,7 +185,8 @@ editRoutes:
       - playbook/backend/spring.md
       - design/api-spec.md
   - id: frontend-ui-change
-    when: 컴포넌트 구조/접근성/SVG 아이콘 변경
+    action: add-component
+    when: 컴포넌트 구조/접근성/SVG 아이콘 변경, 폼 필드 추가, TextField를 화면에 조립
     open:
       - playbook/frontend/stacks/nextjs.md
       - playbook/frontend/ui/component.md
@@ -195,9 +196,21 @@ editRoutes:
     thenRead:
       - playbook/core/naming.md
       - playbook/core/code-style.md
+    mustHold:
+      - 필드는 NameTextForm처럼 의미 단위로 닫는다. feature/page는 TextField를 직접 쓰지 않는다.
+  - id: frontend-form-meaning-unit
+    action: add-component
+    when: 폼 필드/입력/TextField/ChipButton을 feature나 page에서 직접 쓰거나 의미 단위로 닫기
+    open:
+      - playbook/frontend/ui/component.md
+    thenRead:
+      - playbook/frontend/ui/screen.md
+      - playbook/core/naming.md
+    mustHold:
+      - 필드는 NameTextForm처럼 의미 단위로 닫는다. feature/page는 TextField를 직접 쓰지 않는다.
   - id: frontend-screen-change
     action: build-screen
-    when: 새 화면/route/dashboard/settings/list-detail/workflow/주요 page layout 변경
+    when: 새 화면/route/dashboard/settings/list-detail/form workflow/주요 page layout 변경
     open:
       - playbook/frontend/stacks/nextjs.md
       - playbook/frontend/ui/screen.md
@@ -208,6 +221,8 @@ editRoutes:
       - playbook/frontend/ui/accessibility.md
       - playbook/frontend/content/ui-copy.md
       - playbook/frontend/content/i18n.md
+    mustHold:
+      - 필드는 NameTextForm처럼 의미 단위로 닫는다. feature/page는 TextField를 직접 쓰지 않는다.
   - id: frontend-style-theme-change
     when: Tailwind/CSS Module/테마 변경
     open:

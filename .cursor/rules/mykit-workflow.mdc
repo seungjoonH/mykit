@@ -12,6 +12,8 @@ This rule enforces design-to-code synchronization.
 - Start from `playbook/PLAYBOOK.index.yaml`.
 - Use `entrypoints` for initial traversal.
 - Use `domainMap` and `editRoutes` to find the exact guideline file for the requested change.
+- Match `when`, then follow `action` if present. Read every file in `open` before editing.
+- If a route has `mustHold`, treat those lines as hard contracts. Do not skip them because the task looks small.
 
 ## Required project docs
 
