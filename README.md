@@ -324,7 +324,10 @@ npx github:seungjoonH/mykit init --dry-run --frontend nextjs --backend nestjs --
 
 ### 4. Claude Code skill로 사용
 
-GitHub 저장소를 Claude Code plugin으로 설치하면 `skills/mykit`의 action 문서를 사용할 수 있습니다. <br />
+GitHub 저장소를 Claude Code plugin으로 설치하면 `skills/mykit/SKILL.md`가 인덱스입니다. <br />
+자연어 요청도 이 스킬 description으로 타고, `/mykit:add-component` 같은 슬래시 커맨드는 같은 action 문서로 바로 갑니다. <br />
+폼과 화면 작업에서는 필드를 `NameTextForm`처럼 의미 단위로 닫고, `feature`/`page`는 `TextField`를 직접 쓰지 않습니다.
+
 에이전트는 요청을 먼저 프로젝트 관례에 맞춰 해석하고, 필요한 경우 구현 preview를 보여준 뒤 컴포넌트, API, 데이터 모델, 테스트, 리팩토링, 보안 리뷰 작업으로 이어갑니다.
 
 <br clear="both" />
