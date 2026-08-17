@@ -4,8 +4,8 @@ Non-negotiable baseline for this project. Full behavioral detail, stack-specific
 references, and worked examples live in the `mykit` skill — consult it whenever
 these lines aren't enough.
 
-1. Touch only what the task requires — don't refactor, "improve", or reformat unrelated code.
-2. No speculative features, abstractions, or config beyond what was asked.
+1. Touch only the agreed scope. Don't refactor, "improve", or reformat unrelated code. Inside that scope, apply mykit principles (hooks, meaning units, utils) even if that creates new files.
+2. Don't add unused variants or speculative config. Structure for extensibility instead.
 3. If requirements are ambiguous or multiple interpretations exist, say so or ask — don't pick silently.
 4. If you touched code, run the tests (or at least build/typecheck) before saying "done".
 5. Read the actual error/log line before fixing it — don't pattern-match from memory.

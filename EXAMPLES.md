@@ -94,7 +94,7 @@ Which aspect matters most for your use case?
 
 ---
 
-## 2. Simplicity First
+## 2. Extensibility First
 
 ### Example 1: Over-abstraction
 
@@ -157,7 +157,7 @@ def calculate_discount(amount: float, percent: float) -> float:
 discount = calculate_discount(100.0, 10.0)  # $10 off
 ```
 
-**When to add complexity:** Only when you actually need multiple discount types. If that requirement comes later, refactor then.
+**Unused variants are still wrong.** A strategy hierarchy for one percent discount is speculative config. Extracting `calculate_discount` as a util at one call site is the right move. Adding `PercentageDiscount`/`FixedDiscount` before a second type exists is not.
 
 ### Example 2: Speculative Features
 
@@ -222,7 +222,7 @@ def save_preferences(db, user_id: int, preferences: dict):
 
 ---
 
-## 3. Surgical Changes
+## 3. Scoped Changes
 
 ### Example 1: Drive-by Refactoring
 
@@ -266,7 +266,7 @@ def save_preferences(db, user_id: int, preferences: dict):
 - Changed comments
 - Added docstring
 
-**✅ What Should Happen (Surgical)**
+**✅ What Should Happen (Scoped)**
 
 ```diff
   def validate_user(user_data):
@@ -495,7 +495,7 @@ def sort_scores(scores):
 
 ---
 
-## 5. Simplicity First for UI
+## 5. Extensibility First for UI
 
 ### Example: Complete UI Without Leaking Example Content
 
@@ -543,8 +543,8 @@ export function WorkspacePage({ tenantName }: { tenantName: string }) {
 Keep every approved screen requirement, reuse existing primitives inside those regions, and let the page
 own its unique layout and responsive CSS. Verify behavior and compare desktop/mobile rendering with the
 reference. Render tenant names from runtime data, omit descriptions that do not help users, and use SVG icon
-contracts instead of text glyphs. Simplicity means the smallest implementation that satisfies the requirements,
-not fewer requirements.
+contracts instead of text glyphs. Extensibility means close meaning units, keep approved structure, and let the
+page own its CSS. It does not mean fewer requirements or unused variants.
 
 ---
 
@@ -553,24 +553,14 @@ not fewer requirements.
 | Principle | Anti-Pattern | Fix |
 |-----------|-------------|-----|
 | Think Before Coding | Silently assumes file format, fields, scope | List assumptions explicitly, ask for clarification |
-| Simplicity First | Strategy pattern for single discount calculation | One function until complexity is actually needed |
-| Simplicity First for UI | Drops approved screen regions to avoid page CSS | Keep requirements and use the smallest complete composition |
-| Surgical Changes | Reformats quotes, adds type hints while fixing bug | Only change lines that fix the reported issue |
+| Extensibility First | Strategy pattern and unused config for one discount | Extract a util; do not invent unused variants |
+| Extensibility First for UI | Drops approved screen regions to avoid page CSS | Keep requirements, close meaning units, let the page own CSS |
+| Scoped Changes | Reformats quotes, adds type hints while fixing bug | Stay inside the agreed scope; apply principles there |
 | Goal-Driven | "I'll review and improve the code" | "Write test for bug X → make it pass → verify no regressions" |
 
 ## Key Insight
 
-The "overcomplicated" examples aren't obviously wrong—they follow design patterns and best practices. The problem is **timing**: they add complexity before it's needed, which:
+Unused architecture is still wrong. A util, hook, or meaning unit at one call site is not unused architecture.
+Stay inside the agreed scope. Inside that scope, extract what the code is, then reuse it next time.
 
-- Makes code harder to understand
-- Introduces more bugs
-- Takes longer to implement
-- Harder to test
-
-The "simple" versions are:
-- Easier to understand
-- Faster to implement
-- Easier to test
-- Can be refactored later when complexity is actually needed
-
-**Good code is code that solves today's problem simply, not tomorrow's problem prematurely.**
+**Good code is structured so the next change can reuse it, without unused variants today.**
