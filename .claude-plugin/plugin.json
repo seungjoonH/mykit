@@ -1,11 +1,12 @@
 {
   "name": "mykit",
-  "description": "Personal Claude Code skill toolkit: project scaffolding + behavioral guidelines, by seungjoonH",
+  "description": "Personal Claude Code skill toolkit: UI/component/form playbook, project scaffolding, and behavioral guidelines, by seungjoonH",
   "version": "0.6.0",
   "author": {
     "name": "seungjoonH"
   },
   "license": "MIT",
-  "keywords": ["guidelines", "best-practices", "coding", "scaffolding", "mykit"],
-  "skills": ["./skills/mykit"]
+  "keywords": ["guidelines", "best-practices", "coding", "scaffolding", "mykit", "ui", "components", "forms"],
+  "skills": ["./skills/mykit"],
+  "commands": "./commands"
 }
