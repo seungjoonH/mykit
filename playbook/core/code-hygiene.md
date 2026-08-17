@@ -3,8 +3,9 @@
 ## Rules
 - Remove unused imports/exports immediately.
 - Do not hide failure with fallback-first coding.
-- Keep domain-agnostic pure functions (date/number formatting, etc.) in `utils/` and reuse them.
-- Never move logic that's still used in only one place into `utils/` on speculation. Extract it once it's actually needed in 2 or more places.
+- Keep domain-agnostic pure transforms in `utils/`. Persist, auth, and API calls belong in a hook or domain layer.
+- Extract a util even at a single call site when the logic is util-shaped. Look for that helper first on the next task and reuse it.
+- Before writing a new format/transform function, check whether `utils/` already has one. Never hardcode a value that must stay consistent project-wide (like locale) inside a function.
 
 ## Do
 - Fix root cause before adding guard rails.
@@ -12,8 +13,8 @@
 
 ## Don't
 - Silence errors with broad try-catch.
-- Never repeat generic logic like date or number formatting inline in every file.
-- Never extract logic into `utils/` while it's still only used in one place.
+- Never put persist or auth into `utils/`.
+- Never leave a util-shaped pure transform inline just because it has one call site.
 
 ## Do Example
 ```ts
@@ -38,6 +39,14 @@ catch {
 ```
 
 ```ts
+// ❌ a shared util exists, but each page reimplements it locally with the locale hardcoded
+function formatTimeRange(start: string, end: string) {
+  const fmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${fmt.format(new Date(start))}-${fmt.format(new Date(end))}`;
+}
+```
+
+```ts
 // ❌ the same date-formatting logic is reimplemented in every file
 function OrderList({ orders }: Props) {
   const formatted = new Date(orders[0].createdAt).toLocaleDateString("en-US");
@@ -45,10 +54,14 @@ function OrderList({ orders }: Props) {
 ```
 
 ```ts
-// ❌ extracted to utils/ while only used in one place
-// utils/formatOrderTitle.ts
-export function formatOrderTitle(order: Order) {
-  return `#${order.id} ${order.title}`;
+// ❌ persist or auth in utils/
+export async function saveTicket(formData: Ticket) {
+  return TicketService.update(formData);
+}
+
+// ✅ domain-free pure transform only. Extract even at one call site when it is a util
+export function slugify(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, "-");
 }
 ```
 

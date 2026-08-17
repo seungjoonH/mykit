@@ -10,6 +10,7 @@
 - Pages may own shell, navigation, major region composition, and page-level responsive layout.
 - Screen-specific grid templates, asymmetric panels, sticky regions, media queries, and container queries are allowed.
 - Repeated flex/grid is a signal to consider a layout primitive, not a ban on direct screen CSS.
+- Features and pages must not use interactive primitives like `TextField` directly. Close each field as a meaning unit such as `NameTextForm`.
 
 ## Before Implementation
 - Identify the reference spec, mock, screenshot, wireframe, or existing screen.
@@ -22,6 +23,7 @@
 
 ## Completion
 - Structural QA checks required headings, navigation, filters, actions, statuses, owned states, responsive transitions, keyboard access, accessible names, and long text.
+- Structural QA fails if `feature`/`page` JSX still contains `TextField`.
 - Visual QA compares hierarchy, spacing, alignment, typography, tokens, overflow, and clipping against the reference at desktop and mobile viewports.
 - Record mismatches, fix them, and compare again. Opening a browser once is not visual QA.
 - Run Content QA after visual changes: reject runtime/fixture data in shared copy, unnecessary or repeated descriptions, text glyphs used as icons, and configured forbidden content while preserving safety-critical guidance.

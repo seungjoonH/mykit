@@ -3,7 +3,10 @@
 ## Rules
 - Use early return for nested conditions.
 - Use switch for enum/type branching.
-- Use compact one-line form when a block has a single statement.
+- When the same enum-based ternary chain returning different values repeats in multiple places, consolidate it into a lookup object.
+- Use compact one-line form when a block has a single statement. Prefer one line for all code, including JSX. Wrap when the line is 100 characters or more including indent. Set Prettier `printWidth` to 100.
+- Put `handleXxx` in the component body. JSX only receives a reference. Never `onClick={() => ...}`, even inside `map`. Close a row component if the item is needed.
+- `onSubmit` uses `SubmitEvent<HTMLFormElement>`. Never `FormEvent`. `try` wraps one persist. Catch only maps.
 - Use the `is` package for runtime type checks. (`npm install is`)
 
 ## Do
@@ -42,6 +45,16 @@ try { execute(); }
 catch { recover(); }
 ```
 
+```ts
+// ✅ consolidate into a lookup object keyed by view
+const VIEW_STRATEGY: Record<View, { days: DaysFn; range: RangeFn; shift: ShiftFn }> = {
+  month: { days: getMonthDays, range: getMonthRange, shift: shiftMonth },
+  day: { days: (anchor) => [anchor], range: getDayRange, shift: shiftDay },
+  week: { days: getWeekDays, range: getWeekRange, shift: shiftWeek },
+};
+const { days, range, shift } = VIEW_STRATEGY[view];
+```
+
 ## Don't Example
 ```ts
 if (ok) {
@@ -77,6 +90,10 @@ if (kind === "ping") {
 if (kind === "pong") {
   pong();
 }
+
+const days = view === "month" ? getMonthDays() : view === "day" ? [anchor] : getWeekDays();
+const range = view === "month" ? getMonthRange() : view === "day" ? getDayRange() : getWeekRange();
+const shift = view === "month" ? shiftMonth : view === "day" ? shiftDay : shiftWeek;
 
 try { 
   execute(); 

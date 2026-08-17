@@ -3,9 +3,10 @@
 ## Rules
 - Remove unused imports/exports immediately.
 - Do not hide failure with fallback-first coding.
-- Keep domain-agnostic pure functions in `utils/` and reuse them.
+- Keep domain-agnostic pure transforms in `utils/`. Persist, auth, and API calls belong in a hook or domain layer.
 - Never reimplement the same utility logic inline in every file.
-- Never move logic that's still used in only one place into `utils/` on speculation. Extract it once it's actually needed in 2 or more places.
+- Before writing a new format/transform function, check whether `utils/` already has one. Never hardcode a value that must stay consistent project-wide (like locale) inside a function — hardcoding it differently per file becomes a bug where each screen looks different.
+- Extract a util even at a single call site when the logic is util-shaped. Look for that helper first on the next task and reuse it.
 - Split `utils/` by concern (`date.ts`, `number.ts`, `string.ts`, etc.) instead of dumping everything into one `utils.ts`.
 
 ## Do
@@ -15,7 +16,8 @@
 ## Don't
 - Silence errors with broad try-catch.
 - Never repeat generic logic like date or number formatting inline inside a component or domain module.
-- Never extract logic into `utils/` while it's still only used in one place.
+- Never put persist or auth into `utils/`.
+- Never leave a util-shaped pure transform inline just because it has one call site.
 
 ## Common candidates
 - Date/time: relative time, locale formatting, duration math.
@@ -28,6 +30,18 @@
 ## Example
 ```ts
 if (!response.ok) throw new Error("request_failed");
+```
+
+```typescript
+// ❌ a shared util exists, but each page reimplements it locally with the locale hardcoded
+function formatTimeRange(start: string, end: string) {
+  const fmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${fmt.format(new Date(start))}-${fmt.format(new Date(end))}`;
+}
+
+// ✅ reuse the existing shared util and pass locale in as a parameter
+import { formatDateTime } from '@/utils/date';
+const range = `${formatDateTime(start, locale)}-${formatDateTime(end, locale)}`;
 ```
 
 ```typescript
@@ -50,14 +64,15 @@ export function formatDate(date: Date | string) {
 ```
 
 ```typescript
-// ❌ extracted to utils/ while only used in one place
-// utils/formatOrderTitle.ts
-export function formatOrderTitle(order: Order) {
-  return `#${order.id} ${order.title}`;
+// ❌ persist or auth in utils/
+export async function saveTicket(formData: Ticket) {
+  return TicketService.update(formData);
 }
 
-// ✅ extract once a second use actually shows up; keep it inline until then
-const title = `#${order.id} ${order.title}`;
+// ✅ domain-free pure transform only. Extract even at one call site when it is a util
+export function slugify(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, '-');
+}
 ```
 
 ## Boundaries

@@ -5,15 +5,15 @@
     "name": "seungjoonH"
   },
   "metadata": {
-    "description": "Personal Claude Code skill toolkit: project scaffolding + behavioral guidelines",
-    "version": "0.6.0"
+    "description": "Personal Claude Code skill toolkit: UI/component/form playbook, project scaffolding, and behavioral guidelines",
+    "version": "0.7.0"
   },
   "plugins": [
     {
       "name": "mykit",
       "source": "./",
-      "description": "Behavioral guidelines and project-scaffolding for Claude Code: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution",
-      "version": "0.6.0",
+      "description": "Claude Code playbook for UI/components/forms, scaffolding, and behavioral guidelines. Close fields as NameTextForm meaning units.",
+      "version": "0.7.0",
       "author": {
         "name": "seungjoonH"
       },
@@ -22,7 +22,10 @@
         "best-practices",
         "coding",
         "scaffolding",
-        "mykit"
+        "mykit",
+        "ui",
+        "components",
+        "forms"
       ],
       "category": "workflow"
     }

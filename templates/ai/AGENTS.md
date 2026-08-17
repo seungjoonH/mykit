@@ -6,7 +6,7 @@ Behavioral guidelines for Codex and other coding agents. Merge with project-spec
 
 ## Reference Examples
 
-Read `EXAMPLES.md` before implementation. Use it as the concrete behavior reference for Think Before Coding, Simplicity First, Surgical Changes, and Goal-Driven Execution.
+Read `EXAMPLES.md` before implementation. Use it as the concrete behavior reference for Think Before Coding, Extensibility First, Scoped Changes, and Goal-Driven Execution.
 
 ## Playbook Entry Point
 
@@ -14,6 +14,8 @@ Start from `playbook/PLAYBOOK.index.yaml` to locate the exact guideline file to 
 - Use `entrypoints` for initial traversal order.
 - Use `domainMap` to find stack/domain-specific docs quickly.
 - Use `editRoutes` to map change intent to the right document path.
+- Match `when`, then follow `action` if present. Read every file in `open` before editing.
+- If a route has `mustHold`, treat those lines as hard contracts. Do not skip them because the task looks small.
 
 ## Codex Notes
 
@@ -28,36 +30,31 @@ Keep this file short and concrete. Codex combines global and project instruction
 Before implementing:
 - State your assumptions explicitly. If uncertain, ask.
 - If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 2. Simplicity First
+## 2. Extensibility First
 
-**Minimum code that solves the problem. Nothing speculative.**
+**Structure for growth. Minimum code is not the goal.**
 
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
+This is a one-person codebase and one piece of work. Extract a util, hook, or meaning unit even at a single call site when that is what the code is. Look for the extracted helper first on the next task and reuse it. Keep components light, put logic in hooks, and close Specify/layer/util every time.
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+Do not add unused variants or speculative config keys. Do not copy an existing pattern when it violates these rules. Ask only about scope. Inside the agreed scope, create the files the principles require and report afterwards.
 
-## 3. Surgical Changes
+## 3. Scoped Changes
 
-**Touch only what you must. Clean up only your own mess.**
+**Touch only the agreed scope. Apply the principles inside it.**
 
 When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
+- Don't "improve" adjacent code, comments, or formatting outside the agreed scope.
+- Inside the agreed scope, if the current pattern violates, don't copy it. Close a meaning unit, extract a hook or util, and report afterwards.
+- Don't match existing style when that style is a violation.
 - If you notice unrelated dead code, mention it - don't delete it.
 
 When your changes create orphans:
 - Remove imports/variables/functions that YOUR changes made unused.
 - Don't remove pre-existing dead code unless asked.
 
-The test: Every changed line should trace directly to the user's request.
+The test: every changed line should trace to the user's request or to a principle applied inside the agreed scope.
 
 ## 4. Goal-Driven Execution
 
@@ -171,4 +168,4 @@ This is the step coding agents skip most often after "run tests". They guess fro
 
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, verification is reported with exact checks, and clarifying questions come before implementation rather than after mistakes.
+**These guidelines are working if:** changes stay inside the agreed scope, extensibility is applied there instead of copied violations, verification is reported with exact checks, and clarifying questions come before implementation rather than after mistakes.

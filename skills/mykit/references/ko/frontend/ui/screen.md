@@ -10,6 +10,7 @@
 - page는 shell, navigation, 큰 영역 조합과 page-level responsive layout을 소유할 수 있다.
 - 화면 고유 grid template, 비대칭 패널, sticky 영역, media query와 container query를 허용한다.
 - 반복되는 flex/grid는 layout primitive 추출을 검토하는 신호이지 화면의 직접 CSS 사용 금지가 아니다.
+- `feature`/`page`는 `TextField` 같은 interactive primitive를 직접 쓰지 않는다. 필드는 `NameTextForm`처럼 의미 단위로 닫는다.
 
 ## 구현 전 확인
 - reference spec, mock, screenshot, wireframe 또는 기준이 되는 기존 화면을 식별한다.
@@ -22,6 +23,7 @@
 
 ## 완료 조건
 - 구조적 QA에서 필요한 heading, navigation, filter, action, status, 소유 상태, 반응형 전환, keyboard 접근, accessible name과 긴 문자열을 확인한다.
+- `feature`/`page` JSX에 `TextField`가 남아 있으면 구조적 QA 실패다.
 - Visual QA에서 reference와 hierarchy, spacing, alignment, typography, token, overflow, clipping을 desktop/mobile viewport에서 비교한다.
 - 불일치를 기록하고 수정한 뒤 다시 비교한다. 브라우저를 한 번 여는 것은 visual QA가 아니다.
 - 시각 수정 후 Content QA를 수행한다. 안전에 필요한 설명은 보존하면서 공통 카피의 런타임·fixture 데이터, 불필요하거나 반복되는 설명, 문자 icon, 설정된 금지 content를 검사한다.

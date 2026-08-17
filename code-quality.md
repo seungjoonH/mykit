@@ -15,11 +15,67 @@
 - **예측 가능하다**: 일반적인 기대를 벗어나지 않는다
 - **단위가 작다**: 한 번에 이해 가능한 크기다
 
+### 확장성을 먼저 생각한다
+
+1인 개발이다. 전부 본인 코드이고, 프로젝트는 하나의 작품이다. 최소 코드가 목표가 아니다.
+한 곳에서만 써도 유틸 성격이면 분리한다. 로직은 훅, 컴포넌트는 가볍게, Specify와 계층과
+유틸 분리를 매번 한다. 구조는 확장 가능하게 짜되, 지금 호출되지 않는 variant나 config 키는
+미리 넣지 않는다.
+
+mykit의 두 의의.
+- 새 프로젝트를 이 원칙 위에서 쌓는다
+- 기존 프로젝트를 같은 원칙으로 리팩터한다. 기존 패턴이 위반이면 복제하지 않고 고친다
+
+확인은 범위만 받는다. 합의한 범위 안에서는 의미 단위, 훅, 유틸을 원칙대로 만들고 사후에
+보고한다. 범위 밖은 만지지 않는다.
+
+### Server Component는 훅 대신 로더 함수로 나눈다
+
+Server Component는 `use*` 훅을 쓸 수 없다. 그래서 복잡한 로직을 뺄 자리가 없다고 착각하기
+쉽지만 원칙은 위 4가지 기준과 똑같다. 훅 대신 일반 async 함수로 단위를 나눈다.
+
+- 가드(인증/권한 체크)와 파라미터 파싱은 여러 페이지가 재사용하는 공유 함수로 뺀다.
+  허용 역할 목록처럼 가드가 참조하는 값도 페이지마다 따로 하드코딩하지 않고 같은
+  공유 함수 또는 상수를 쓴다.
+- 데이터 fetch와 파생 계산(옵션 목록, 색상 맵, dedup 등)은 페이지 전용 "뷰모델 로더"
+  함수 하나로 모은다. 페이지 컴포넌트는 그 함수를 부르고 결과를 렌더링만 한다.
+- 여러 페이지에서 거의 같은 파생 계산이 반복되면 공유 유틸로 추출한다. 페이지마다 손으로
+  복붙하지 않는다.
+
+```tsx
+// ❌ 가드, 파싱, fetch, 파생 계산, 렌더링이 한 함수에 있다
+export default async function OrganizationAgendaPage({ searchParams }: Props) {
+  const profile = await getCurrentProfile();
+  if (!profile?.organizationId || !allowedRoles.includes(profile.role)) redirect('/login');
+  const params = await searchParams;
+  // 파싱, fetch, 파생 계산 수십 줄이 이어진다
+  return <main>...</main>;
+}
+
+// ✅ 로더 함수가 데이터를 준비하고, 컴포넌트는 렌더링만 한다
+async function loadAgendaViewModel(searchParams: SearchParams) {
+  const profile = await requireOrgManagerProfile();
+  // 파싱, fetch, 파생 계산
+  return { profile, visible, therapistOptions, clientOptions };
+}
+
+export default async function OrganizationAgendaPage({ searchParams }: Props) {
+  const viewModel = await loadAgendaViewModel(searchParams);
+  return <AgendaView {...viewModel} />;
+}
+```
+
+이 분리는 필터/옵션이 여러 개거나 파생 계산이 몇 단계씩 이어지는 복잡한 페이지에 적용하는
+기준이다. 가드 하나에 fetch 한 번뿐인 단순한 페이지까지 억지로 로더 함수로 쪼개지 않는다.
+로더 함수 하나가 여전히 200줄을 넘는다면 로더를 안 만든 것과 같다. 로더 내부도 같은 4가지
+기준으로 다시 나눈다.
+
 ### 복잡성은 은닉하고, 실사용 API는 간단하게
 
 호출부는 구현 방식이 아니라 의도만 알면 된다. URL, method, header, 에러 코드 매핑, 재시도
 같은 세부사항은 그 기능을 제공하는 모듈 안에 완전히 가두고, 밖으로는 도메인 의미를 가진
-함수나 컴포넌트 API만 노출한다.
+함수나 컴포넌트 API만 노출한다. UI도 같다. `TextField`에 `label={t("name")}`을 거는 것은
+호출부가 입력 primitive의 세부사항을 아는 것이다. `NameTextForm`처럼 의미 단위로 닫는다.
 
 ```typescript
 // ❌ 호출부가 transport 세부사항을 그대로 알아야 한다
@@ -27,6 +83,14 @@ await request(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) 
 
 // ✅ 호출부는 의도만 남는다
 await UserService.update(id, data);
+```
+
+```tsx
+// ❌ 호출부가 입력 primitive와 label/required를 조립한다
+<TextField label={t("name")} value={name} onChange={handleNameChange} required />
+
+// ✅ 호출부는 닫힌 의미 단위만 본다
+<NameTextForm value={name} onChange={handleNameChange} />
 ```
 
 컴포넌트도 예외가 아니다. 내부에 생기는 복잡한 로직은 컴포넌트 밖으로 훅으로 옮기고,
@@ -140,6 +204,8 @@ Store의 action은 상태를 어떻게 바꿀지를, 도메인 훅의 action은 
 **규칙**
 - 열거형/타입 기반 분기는 `switch` 사용
 - 중첩 조건은 early return으로 평탄화
+- 같은 열거형 조건으로 여러 값을 반환하는 삼항 체인이 여러 곳에 반복되면 lookup 객체
+  하나로 모은다
 
 ```typescript
 // ❌
@@ -151,6 +217,21 @@ switch (type) {
   case 'A': ...
   case 'B': ...
 }
+```
+
+```typescript
+// ❌ 같은 view 조건으로 갈라지는 삼항 체인이 여러 값마다 반복된다
+const days = view === 'month' ? getMonthDays() : view === 'day' ? [anchor] : getWeekDays();
+const range = view === 'month' ? getMonthRange() : view === 'day' ? getDayRange() : getWeekRange();
+const shift = view === 'month' ? shiftMonth : view === 'day' ? shiftDay : shiftWeek;
+
+// ✅ view를 키로 하는 lookup 객체 하나로 모은다
+const VIEW_STRATEGY: Record<View, { days: DaysFn; range: RangeFn; shift: ShiftFn }> = {
+  month: { days: getMonthDays, range: getMonthRange, shift: shiftMonth },
+  day: { days: (anchor) => [anchor], range: getDayRange, shift: shiftDay },
+  week: { days: getWeekDays, range: getWeekRange, shift: shiftWeek },
+};
+const { days, range, shift } = VIEW_STRATEGY[view];
 ```
 
 ```typescript
@@ -182,12 +263,15 @@ if (isValidTarget) { ... }
 ### 1.3 함수는 최대한 작게
 
 **규칙**
-- 한 줄이면 한 줄로 작성
+- 모든 코드(JSX 포함)는 한 줄이 가능하면 한 줄로 작성한다
+- 들여쓰기 포함 **100자 이상**이면 줄바꿈한다. 포맷터 `printWidth`도 100으로 맞춘다
 - 하나의 함수는 하나의 책임만
+- void 함수에서 `if (!result.ok) return setError(...)` 한 줄 압축은 허용한다
 
 ```typescript
 // ✅
 const close = () => setOpen(false);
+if (!result.ok) return setError(result.error);
 ```
 
 ### 1.4 매직 넘버 금지
@@ -206,6 +290,13 @@ const RETRY_INTERVAL_MS = 300;
 **규칙**
 - 렌더 내부에서 로직 실행 금지
 - 복잡한 로직은 렌더 이전에 계산
+- 변환 규칙이 거의 같은 항목을 JSX prop 안에 손으로 여러 개 나열하지 않는다. 선언적
+  설정 배열로 뽑고 `map`으로 만든다
+- 행위 콜백은 컴포넌트 본문의 `handleXxx`다. JSX에는 `onKeyDown={handleKeyDown}`처럼
+  참조만 둔다. `onClick={() => ...}` 인라인은 `map`이어도 금지다. 항목이 필요하면 행
+  컴포넌트를 닫고 그 안의 `handleXxx`가 클로저로 가진다
+- `handleSubmit`은 `preventDefault`와 persist 시작만 한다. JSX `onSubmit={(e) => ...}`는
+  금지다. `onSubmit` 이벤트 타입은 `SubmitEvent<HTMLFormElement>`다. `FormEvent`는 쓰지 않는다
 
 ```tsx
 // ❌
@@ -213,6 +304,43 @@ const RETRY_INTERVAL_MS = 300;
 
 // ✅
 const result = compute();
+```
+
+```tsx
+// ❌ 거의 같은 변환 규칙을 가진 항목을 손으로 하나씩 나열한다
+<DefinitionList items={[
+  { label: t('field.name'), value: entity.name?.trim() || t('notSet') },
+  { label: t('field.email'), value: entity.email?.trim() || t('notSet') },
+  { label: t('field.phone'), value: entity.phone?.trim() || t('notSet') },
+  // ... 20여 개 더
+]} />
+
+// ✅ 필드 목록을 선언적 설정으로 뽑고 map으로 생성한다
+const DETAIL_FIELDS = [
+  { key: 'name', labelKey: 'field.name' },
+  { key: 'email', labelKey: 'field.email' },
+  { key: 'phone', labelKey: 'field.phone' },
+] as const;
+
+const items = DETAIL_FIELDS.map(({ key, labelKey }) => ({
+  label: t(labelKey),
+  value: entity[key]?.trim() || t('notSet'),
+}));
+
+<DefinitionList items={items} />
+```
+
+```tsx
+// ❌ map 안에서도 인라인 핸들러를 쓰지 않는다
+{items.map((item) => (
+  <button key={item.id} onClick={() => select(item.id)}>{item.label}</button>
+))}
+
+// ✅ 행 컴포넌트를 닫고 그 안의 handleXxx가 클로저로 가진다
+function ItemRow({ item, onSelect }: ItemRowProps) {
+  function handleClick() { onSelect(item.id); }
+  return <button type="button" onClick={handleClick}>{item.label}</button>;
+}
 ```
 
 ### 1.6 반복/변환
@@ -248,7 +376,7 @@ function TicketEditForm({ initialData }: Props) {
   const isTitleEmpty = !formData.title.trim();
   const isDisabled = isTitleEmpty || formData.tags.length === 0;
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(formData) });
   };
@@ -260,10 +388,14 @@ function TicketEditForm({ initialData }: Props) {
 function useTicketEditForm(initialData: TicketEditData) {
   const [formData, setFormData] = useState(initialData);
   const isDisabled = !formData.title.trim() || formData.tags.length === 0;
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    return TicketService.update(formData);
+    void persist();
   };
+  async function persist() {
+    try { return await TicketService.update(formData); }
+    catch (error) { return mapPersistError(error); }
+  }
   return { formData, setFormData, isDisabled, handleSubmit };
 }
 
@@ -297,6 +429,7 @@ useEffect(bindEvent, []);
 - `switch`에서 statement가 1개면 한 줄로 작성한다 (`case 'X': break;`, `default: break;`)
 - `try/catch`에서 양쪽 statement가 1개면 한 줄로 작성한다 (`try { ... }`, `catch { ... }`)
 - `catch {}` 빈 블록 금지 (최소 주석 또는 처리 로직 필요)
+- `try`는 persist 하나다. 그 안에 create/update `if/else`를 넣지 않는다. `catch`는 매핑만 한다
 
 ```typescript
 // ❌
@@ -382,24 +515,41 @@ const META = {
 ### 2.5 범용 유틸리티는 utils/로 분리
 
 **규칙**
-- 도메인과 무관한 순수 함수는 `utils/`에 두고 재사용한다
+- 도메인과 무관한 순수 변환만 `utils/`에 둔다. persist, 권한, API 호출은 훅이나 도메인
+  계층이다
+- 한 곳에서만 써도 유틸 성격이 짙으면 분리한다. 다음에 비슷한 로직이 나오면 분리된
+  유틸을 먼저 찾고 재사용한다
 - 같은 유틸리티 로직을 파일마다 인라인으로 다시 구현하지 않는다
-- 아직 한 곳에서만 쓰는 로직을 예측만으로 미리 `utils/`로 빼지 않는다. 실제로 2곳 이상에서
-  필요해졌을 때 추출한다
+- 새 포맷/변환 함수를 만들기 전에 `utils/`에 이미 있는지 먼저 찾는다. 특히 로케일처럼
+  프로젝트 전역에서 일관돼야 하는 값을 함수 안에 하드코딩하지 않는다. 파일마다 다르게
+  하드코딩되면 화면마다 다르게 보이는 버그가 된다
 - `utils/` 안에서도 관심사별로 파일을 나눈다(`date.ts`, `number.ts`, `string.ts` 등). 하나의
   `utils.ts`에 다 몰아넣지 않는다
 - 유틸리티 함수는 순수 함수라 테스트하기 쉽다. 대상 파일과 나란히 테스트를 둔다(`date.ts` +
   `date.test.ts`)
 
 ```typescript
-// ❌ 한 곳에서만 쓰는데 미리 utils/로 추출
-// utils/formatOrderTitle.ts
-export function formatOrderTitle(order: Order) {
-  return `#${order.id} ${order.title}`;
+// ❌ 공용 유틸이 있는데 페이지마다 로컬로 다시 구현하고, 로케일도 하드코딩한다
+function formatTimeRange(start: string, end: string) {
+  const fmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${fmt.format(new Date(start))}-${fmt.format(new Date(end))}`;
 }
 
-// ✅ 두 번째로 필요해진 시점에 추출한다. 그 전까지는 인라인으로 둔다
-const title = `#${order.id} ${order.title}`;
+// ✅ 이미 있는 공용 유틸을 먼저 찾아 재사용하고, 로케일은 인자로 받는다
+import { formatDateTime } from '@/utils/date';
+const range = `${formatDateTime(start, locale)}-${formatDateTime(end, locale)}`;
+```
+
+```typescript
+// ❌ persist나 권한을 utils/에 넣는다
+export async function saveTicket(formData: Ticket) {
+  return TicketService.update(formData);
+}
+
+// ✅ 도메인 없는 순수 변환만 utils/. 한 곳에서만 써도 유틸 성격이면 분리한다
+export function slugify(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, '-');
+}
 ```
 
 **흔한 후보**
@@ -436,11 +586,22 @@ export function formatDate(date: Date | string) {
 
 ### 3.1 이벤트 핸들러
 
-`handleXxx` 사용
+`handleXxx`를 컴포넌트 본문에 둔다. JSX에는 참조만 연결한다.
 
 ```
 handleClick
 handleSubmit
+handleKeyDown
+handleDragEnter
+```
+
+```tsx
+// ❌
+<button onClick={() => setOpen(true)} />
+
+// ✅
+function handleOpen() { setOpen(true); }
+<button type="button" onClick={handleOpen} />
 ```
 
 ### 3.2 불리언
@@ -555,7 +716,9 @@ JSX `style` prop에 CSS 속성값(opacity, transform 등)을 직접 넣지 않�
 ### 4.4 SVG는 파일로 분리
 
 JSX 안에 `<svg>` 태그를 인라인으로 작성하지 않는다.
-`public/` 디렉토리에 `.svg` 파일로 저장하고 `<img>`로 사용한다.
+반복되는 아이콘은 `Icon` 계약으로 뺀다. 그 화면만의 illustration은 feature가 가진다.
+재사용 가정이 히어로 그림을 디자인 시스템에 넣으라는 뜻이 아니다.
+`public/`에 `.svg`로 두고 `<img>`로 쓰는 방식도 허용한다.
 
 ```tsx
 // ❌
@@ -602,7 +765,9 @@ interface ResultBadgeProps {
 ### 5.4 Base 컴포넌트 + Named Export 패턴
 
 variant가 여러 개인 컴포넌트는 `*Base`를 내부 구현으로 두고,
-variant가 고정된 Named Export를 외부에 제공한다.
+variant가 고정된 Named Export를 외부에 제공한다. 이 패턴은 색/크기만이 아니다. 폼 필드의
+의미 단위(`NameTextForm`, `CptCodeTextForm`, `StatusForm`)도 같은 구체화다.
+`PrimaryButton`만 보고 Specify를 variant 전용으로 읽지 않는다.
 
 ```tsx
 // 내부 — export 안 함
@@ -618,6 +783,17 @@ export function PrimaryButton(props: Omit<ButtonProps, 'variant'>) {
 
 export function GhostButton(props: Omit<ButtonProps, 'variant'>) {
   return <ButtonBase {...props} variant="ghost" />;
+}
+```
+
+```tsx
+// ❌ feature가 interactive를 열고 label/required를 밖에서 채운다
+<TextField label={t("name")} value={name} onChange={onChange} required />
+
+// ✅ 의미가 닫힌 Named Export. TextField는 이 안에만 있다
+export function NameTextForm(props: Omit<TextFieldProps, "label" | "type" | "required">) {
+  const t = useTranslations("ServiceTypeForm");
+  return <TextField {...props} label={t("name")} type="text" required />;
 }
 ```
 
@@ -647,6 +823,19 @@ type AddChildFormProps = { accountId: string };
 export function AddChildForm({ accountId }: AddChildFormProps) {}
 ```
 
+시그니처 형태는 `function Component({ param }: ComponentProps) {}` 다.
+
+### 5.7 의미 단위로 닫는다
+
+`feature`/`page`는 `TextField`, `ChipButton` 같은 interactive primitive를 직접 쓰지 않는다.
+label, type, required, i18n은 닫힌 의미 단위(`NameTextForm`, `StatusForm`) 안에 둔다.
+primitive 재사용은 그 의미 단위가 primitive를 내부에서 쓰라는 뜻이지, 화면에 `TextField`를
+깔라는 뜻이 아니다.
+
+접근성도 호출부가 primitive에 label을 채우는 일이 아니다. **의미가 생기는 계층**에서
+보장한다. `NameTextForm`이 그 지점이면 label/aria는 그 안에 둔다. `TextField`는 계약을
+열고, feature는 채우지 않는다.
+
 ---
 
 ## 6. 성능 원칙
@@ -663,6 +852,22 @@ useMemo(() => a + b)
 
 // ✅
 const result = a + b;
+```
+
+### 6.2 반복문 안에서 매번 DB 호출을 하지 않는다 (N+1)
+
+배열을 순회하며 매번 쓰기/읽기 요청을 보내는 대신 한 번의 배치/조인 쿼리로 묶는다. 호출
+횟수가 데이터 개수에 비례해서 늘어나면(N+1) 그 자체가 신호다.
+
+```typescript
+// ❌ 항목 개수만큼 매번 요청
+for (const profile of profiles) {
+  const user = await getUserById(profile.id);
+}
+
+// ✅ 한 번에 배치로 조회
+const ids = profiles.map((p) => p.id);
+const users = await getUsersByIds(ids);
 ```
 
 ---
@@ -729,12 +934,160 @@ const UserService = {
 await UserService.update(id, data);
 ```
 
+### 라우트 핸들러의 반복 로직도 공용화한다
+
+지금까지는 호출부(클라이언트) 쪽 얘기였다. 서버 라우트 핸들러도 똑같은 원칙이 적용된다.
+여러 핸들러에서 반복되는 처리는 공용 함수로 모은다.
+
+- 에러 타입에 따라 HTTP 상태/응답 본문을 매핑하는 분기가 여러 핸들러에 반복되면 공용
+  매핑 함수 하나로 모은다. 한 핸들러 안에서 같은 조건을 상태 코드용, 메시지용으로 두 번
+  판단하지 않는다
+- 요청 파싱, 검증, 에러 매핑, rollback 같은 처리 흐름이 두 핸들러에 거의 그대로 복사돼
+  있으면 공통 함수로 추출하고, 서로 다른 부분(호출할 도메인 함수 등)만 인자로 받는다
+
+```typescript
+// ❌ 상태 코드와 메시지를 같은 조건으로 두 번 판단
+export async function PATCH(req: Request) {
+  try {
+    return NextResponse.json(await updateNote(req));
+  } catch (error) {
+    return NextResponse.json(
+      { message: error instanceof ForbiddenError ? '권한이 없습니다' : '처리에 실패했습니다' },
+      { status: error instanceof ForbiddenError ? 403 : 500 },
+    );
+  }
+}
+
+// ✅ 에러 → 응답 매핑을 하나의 함수로 모은다
+function mapErrorToResponse(error: unknown) {
+  if (error instanceof ForbiddenError) return { status: 403, message: '권한이 없습니다' };
+  return { status: 500, message: '처리에 실패했습니다' };
+}
+
+export async function PATCH(req: Request) {
+  try {
+    return NextResponse.json(await updateNote(req));
+  } catch (error) {
+    const { status, message } = mapErrorToResponse(error);
+    return NextResponse.json({ message }, { status });
+  }
+}
+```
+
+```typescript
+// ❌ 파싱, 업로드, 실패 시 rollback까지 다른 핸들러에 거의 그대로 복사됨
+export async function POST(req: Request) {
+  const uploaded = await uploadAttachments(await req.formData());
+  try {
+    return NextResponse.json(await sendMessage(uploaded));
+  } catch (error) {
+    await removeAttachmentFiles(uploaded);
+    throw error;
+  }
+}
+
+export async function POST_AS_CLIENT(req: Request) {
+  const uploaded = await uploadAttachments(await req.formData());
+  try {
+    return NextResponse.json(await sendMessageAsClient(uploaded));
+  } catch (error) {
+    await removeAttachmentFiles(uploaded);
+    throw error;
+  }
+}
+
+// ✅ 차이(호출할 도메인 함수)만 인자로 받고 나머지 흐름은 공유한다
+async function handleSendMessage(req: Request, send: (uploaded: Uploaded[]) => Promise<Message>) {
+  const uploaded = await uploadAttachments(await req.formData());
+  try {
+    return NextResponse.json(await send(uploaded));
+  } catch (error) {
+    await removeAttachmentFiles(uploaded);
+    throw error;
+  }
+}
+
+export const POST = (req: Request) => handleSendMessage(req, sendMessage);
+export const POST_AS_CLIENT = (req: Request) => handleSendMessage(req, sendMessageAsClient);
+```
+
+### 여러 단계로 나뉜 쓰기 작업은 실패 시 전체를 되돌린다
+
+한 요청이 테이블 여러 개에 걸쳐 순서대로 쓰기 작업을 하면, 중간 단계가 실패했을 때 이미
+쓰인 앞 단계를 그대로 두지 않는다. 트랜잭션/RPC로 전체를 하나의 단위로 묶거나, 그게
+불가능하면 모든 단계에 대해 일관되게 보상 처리(rollback)를 건다. 첫 단계만 rollback을
+걸고 이후 단계는 실패해도 그냥 넘어가면, 일부만 쓰인 상태가 성공으로 보고된다.
+
+```typescript
+// ❌ 첫 단계만 실패 시 되돌리고, 이후 단계는 실패해도 그대로 넘어간다
+const user = await createAuthUser(input);
+try {
+  await createProfile(user.id, input);
+} catch (error) {
+  await deleteAuthUser(user.id); // 여기만 보상 처리
+  throw error;
+}
+await linkClientRecord(user.id); // 실패해도 아무도 되돌리지 않는다
+await markInvitationAccepted(input.invitationId); // 여기도 마찬가지
+
+// ✅ 트랜잭션/RPC로 전체를 하나의 단위로 묶는다
+await db.rpc('accept_invitation', { input });
+```
+
+### 가드와 인가
+
+영역 가드는 layout이 하고, 리소스 가드는 domain이 한다. API는 반드시 인가한다.
+`redirect("/login")`를 페이지마다 하드코딩하지 않는다. 포털마다 같은 화면 파일을 복제하지
+않는다.
+
+```tsx
+// ❌ 페이지가 로그인 경로를 하드코딩한다
+if (!profile) redirect("/login");
+
+// ✅ 영역 가드는 공유 layout/가드 함수가 한다
+const profile = await requireSession();
+```
+
+### API 에러 코드와 문구
+
+API는 기계가 읽는 에러 코드를 반환한다. 사용자 문구는 UI가 `t()`로 만든다.
+
+```ts
+// ❌ API가 사용자 문구를 만든다
+return NextResponse.json({ message: "권한이 없습니다" }, { status: 403 });
+
+// ✅ API는 코드, UI는 t()
+return NextResponse.json({ code: "forbidden" }, { status: 403 });
+setError(t(`error.${result.code}`));
+```
+
+### 요청 값은 스키마로 파싱한다
+
+`searchParams`와 요청 본문은 스키마로 파싱한다. `as T`로 단언하지 않는다.
+
+```ts
+// ❌
+const view = searchParams.view as View;
+
+// ✅
+const parsed = viewSchema.safeParse(searchParams);
+if (!parsed.success) return notFound();
+```
+
+### 사용자 범위는 세션과 RLS가 기본이다
+
+사용자 범위 조회/쓰기는 세션 클라이언트와 RLS가 기본이다. service-role은 예외다.
+페이지나 라우트에서 service-role 클라이언트를 직접 부르지 않는다.
+
 ---
 
 ## 8. 접근성 원칙
 
 먼저 디자인 시스템 SSOT를 확인하고, 없으면 W3C "Using ARIA" 4가지 규칙을 따른다. 위반 시
 코드 리뷰를 통과하지 못한다.
+
+접근성은 호출부가 primitive에 label을 채우는 일이 아니다. 의미가 생기는 계층에서 보장한다.
+`NameTextForm`이 그 지점이면 label/aria는 그 안에 둔다.
 
 ### 0th Rule — 디자인 시스템 SSOT 우선
 
@@ -912,7 +1265,14 @@ else { ... }
 - [ ] 매직 넘버가 있는가?
 - [ ] 중첩 조건이 있는가?
 - [ ] 로직이 JSX 안에 있는가?
+- [ ] JSX에 `onClick={() => ...}` 인라인 핸들러가 있는가? `map`도 예외가 아니다
+- [ ] 들여쓰기 포함 100자가 넘는 줄을 그대로 두는가?
+- [ ] `FormEvent`를 쓰는가? `onSubmit`은 `SubmitEvent<HTMLFormElement>`다
+- [ ] `try` 안에 create/update 분기가 섞여 있는가?
 - [ ] 컴포넌트가 너무 큰가?
+- [ ] Server Component에 가드, 파라미터 파싱, fetch, 파생 계산, 렌더링이 한 함수에 몰려 있는가?
+- [ ] 같은 조건으로 여러 값을 반환하는 삼항 체인이 여러 곳에 반복되는가?
+- [ ] 변환 규칙이 거의 같은 항목을 JSX prop 안에 손으로 여러 개 나열하는가?
 - [ ] 컴포넌트 본문에 `fetch`가 직접 있는가?
 - [ ] 부수효과 없는 표현식 구문이 남아 있는가?
 - [ ] effect가 여러 역할을 하는가?
@@ -940,6 +1300,8 @@ else { ... }
 **컴포넌트 설계**
 - [ ] variant/size를 임의 값이 아닌 타입으로 제한했는가?
 - [ ] variant가 여러 개라면 Base + Named Export 패턴을 적용했는가?
+- [ ] 폼 필드를 `TextField` + `label={t("name")}`로 조립하지 않고 `NameTextForm`처럼 의미 단위로 닫았는가?
+- [ ] `feature`/`page` JSX가 `TextField`/`ChipButton` 같은 interactive primitive를 직접 쓰는가?
 - [ ] 컴포넌트 타입은 `type.ts`에 분리했는가?
 - [ ] prop 중 한 값으로 다른 값을 유추할 수 있는 중복 prop이 없는가?
 - [ ] Props를 함수 시그니처에 인라인 객체 타입 리터럴로 받지 않고 이름 있는 타입으로 정의했는가?
@@ -949,11 +1311,26 @@ else { ... }
 - [ ] 구조분해에서 실제로 쓰이지 않는 항목이 없는가?
 - [ ] 빈 파일이 남아 있지 않은가?
 - [ ] 날짜/숫자 포맷 같은 범용 유틸리티가 `utils/` 대신 파일마다 인라인으로 반복되는가?
+- [ ] 유틸 성격이 짙은 순수 변환을 한 곳이라고 인라인에 남겨 두는가?
+- [ ] persist/권한을 `utils/`에 넣었는가?
+- [ ] `utils/`에 이미 있는 함수를 로컬로 재구현하면서 로케일 같은 값을 하드코딩하는가?
 
 **에러 처리**
 - [ ] 요청 실패 처리(파싱, 에러 매핑)가 여러 호출부에 중복되어 있는가?
+- [ ] 여러 라우트 핸들러가 같은 에러 조건을 상태 코드용, 메시지용으로 각자 반복 판단하는가?
+- [ ] 파싱, 검증, 에러 매핑, rollback 흐름이 두 핸들러에 거의 그대로 복사돼 있는가?
+- [ ] 다단계 쓰기 작업에서 일부 단계만 실패 시 되돌리고 나머지는 그냥 넘어가는가?
+- [ ] API가 사용자 문구를 만들고 UI `t()`를 건너뛰는가?
+- [ ] `searchParams`나 본문을 `as T`로 단언하는가?
+- [ ] 영역 가드를 페이지마다 `redirect("/login")`로 하드코딩하는가?
+- [ ] 페이지/라우트가 service-role 클라이언트를 직접 부르는가?
+- [ ] 포털마다 같은 화면 파일을 복제하는가?
+
+**성능/DB**
+- [ ] 반복문 안에서 항목 개수만큼 DB 호출이 발생하는가(N+1)?
 
 **접근성**
+- [ ] 의미가 생기는 계층이 아니라 호출부가 primitive에 label을 채우는가?
 - [ ] 디자인 시스템에 SSOT 컴포넌트가 있는데 native를 직접 쓰고 있는가?
 - [ ] `<input type="checkbox">`, `<select>`를 화면 코드에 직접 사용하고 있는가?
 - [ ] native HTML 요소로 대체 가능한 ARIA role이 없는가?
@@ -966,6 +1343,10 @@ else { ... }
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-08-17 | 확장성 우선·1인 작품 철학(§0), 유틸 성격이면 한 곳이어도 분리(2.5), 한 줄/printWidth 100, handleXxx, FormEvent 금지, try는 persist 하나, 가드/인가/RLS/스키마 파싱, a11y는 의미 계층에서 보장 |
+| 2026-08-17 | index→action→철학→component.md 라우팅을 닫음. `frontend-form-meaning-unit`과 `mustHold`를 인덱스에 넣고, 폼/화면 작업에서 component-layers 의미 단위 섹션을 필수로 읽게 함 |
+| 2026-08-17 | JSX prop 안에 손으로 나열된 유사 항목을 설정 배열로 전환하는 규칙(1.5) 추가, utils/ 재사용 전 기존 함수 확인과 로케일 하드코딩 금지 규칙(2.5) 추가, Server Component 로더 분리 기준에 복잡한 페이지 한정 caveat과 가드 참조값 공유 규칙 추가, i18n 문서에 번역/하드코딩 혼용 금지 규칙 추가 |
+| 2026-08-17 | Server Component는 훅 대신 페이지 전용 로더 함수로 가드/파싱/fetch/파생 계산을 분리하는 규칙 추가, 같은 조건의 반복 삼항 체인을 lookup 객체로 모으는 규칙(1.1) 추가 |
 | 2026-08-17 | `references/{ko,en}/core/code-hygiene.md`가 utils/ 규칙만 남고 기존 import 정리/fallback 금지 규칙이 누락됐던 걸 복구, Hook/Store 예시를 장바구니로 통일, 추상화 수준 구분(Store=상태 변경/Domain=사용자 행위)과 목적별 좁은 훅 허용 규칙 추가, 문서 구조 정합성(고아 bullet, 체크리스트/개정 이력 누락) 정리 |
 | 2026-08-17 | Props 이름 있는 타입 규칙(5.6) 추가, param/return 최소주의를 훅, 컴포넌트, Store 전체로 확장, 기능 훅/Store 반환 형태 일관성 규칙 추가 |
 | 2026-08-17 | 훅 단일 책임 기준을 도메인 단위로 재정의(기술적 동작 개수 기준 폐기), Store/도메인 훅/컴포넌트 계층 원칙과 wiring, 콜백 위탁 안티패턴 추가 |
