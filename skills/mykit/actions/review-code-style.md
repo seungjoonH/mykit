@@ -14,12 +14,12 @@ mykit 코드 스타일 기준으로 파일, 모듈, PR 후보를 점검할 때 �
 자동 도구가 담당하는 공백, quote, semicolon, import order는 mykit 판단으로 임의 수정하지
 않는다. 도구가 있으면 도구 결과를 따른다.
 
-## Confirmation Policy
+## 확인 정책
 
-코드 스타일 리뷰는 먼저 후보를 보고한다. 사용자가 “고쳐줘”라고 했거나 좁고 되돌리기 쉬운
-항목이면 적용할 수 있다.
+확인은 범위만 받는다. 합의한 범위 안의 스타일 항목은 고치고 사후에 보고한다. 범위 밖은
+고치지 않고 보고만 한다.
 
-바로 고칠 수 있는 항목.
+이 action에서 고칠 것.
 
 - 단일 statement block 압축.
 - guard clause 정리.
@@ -27,47 +27,35 @@ mykit 코드 스타일 기준으로 파일, 모듈, PR 후보를 점검할 때 �
 - 명백한 dead import 제거.
 - 테스트명 또는 expectation message typo.
 
-확인받고 고칠 항목.
+이 항목들은 review-code-style의 스코프 밖이다.
+`$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/code-refactoring.md`로 보낸다.
 
 - 함수 추출.
 - hook 분리.
 - lookup map 전환.
+- JSX prop 안에 손으로 나열된 유사 항목을 설정 배열 + `map`으로 전환.
 - public API 변경.
 - 컴포넌트 계층 이동.
 - 파일 분리.
 
-이 항목들은 review-code-style의 스코프 밖이다. `code-refactoring.md`(및 관련
-`audit-*.md`)로 라우팅한다.
+`feature`/`page` JSX의 `TextField` + `label={t(...)}` 조립은 계층 위반이다.
+`$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-component-api.md`로 라우팅한다.
 
 ## Confirmation Prompt
 
 ```text
-mykit 코드 스타일 기준으로 보면 후보는 4개입니다.
+이번에 만지는 범위는 이 파일의 스타일 항목입니다.
 
-고칠 만함.
-단일 statement if block이 여러 군데 있습니다.
-짧은 guard와 단일 statement는 한 줄 압축을 선호합니다.
+범위 안에서 할 것.
+단일 statement if block을 한 줄로 압축한다.
+JSX 안 filter 계산을 derived value로 옮긴다.
 
-고칠 만함.
-JSX 안에서 filter 계산을 두 번 반복합니다.
-return 전에 derived value로 정리하는 게 낫습니다.
-
-선택.
-status label 분기가 단순 switch입니다.
-단순 값 매핑이면 lookup map이 더 읽기 쉽습니다.
-
-보류.
-import 순서는 formatter/linter 담당 영역입니다.
-이번 action에서는 건드리지 않겠습니다.
-
-추천 범위.
-첫 두 항목만 적용.
+이 action 밖. code-refactoring으로 보낸다.
+status label lookup map 전환.
 
 어떻게 진행할까요?
-- 추천 범위 적용.
-- 리뷰만 하고 멈추기.
-- 전체 후보 적용.
-- 범위 다시 잡기.
+- 이 범위로 고친다.
+- 범위 수정.
 ```
 
 ## Review Checklist
@@ -79,7 +67,11 @@ import 순서는 formatter/linter 담당 영역입니다.
 - enum/discriminated union/type 분기를 if chain으로 처리하는가.
 - 단순 값 매핑을 switch로 과하게 쓰는가.
 - JSX 안에 복잡한 계산, 분기, IIFE, 중복 filter/map이 있는가.
+- 변환 규칙이 거의 같은 항목을 JSX prop 안에 손으로 여러 개 나열하는가.
 - handler, className, style, derived value가 return 전에 정리되어 있는가.
+- `handleXxx`가 본문에 있고 JSX는 참조만 받는가. `onClick={() => ...}` 인라인이 `map`에도 없는가.
+- 들여쓰기 포함 100자가 넘는 줄을 그대로 두는가. 포맷터 `printWidth`는 100인가.
+- `FormEvent`를 쓰는가. `onSubmit`은 `SubmitEvent<HTMLFormElement>`인가.
 - hook이 `CSSProperties`나 렌더링 책임을 반환하는가.
 - inline style이 CSS custom property 외 일반 시각 속성을 포함하는가.
 - 테스트 이름이 보장할 동작을 말하는가.
@@ -90,7 +82,7 @@ import 순서는 formatter/linter 담당 영역입니다.
 
 1. formatter/linter 관례를 먼저 확인한다.
 2. 대상 파일과 주변 call site를 읽는다.
-3. 후보를 `고칠 만함`, `선택`, `보류`로 나눈다.
+3. 후보를 범위 안 스타일 수정 / 이 action 밖(code-refactoring) / 도구 담당 보류로 나눈다.
 4. 자동 도구 담당 항목은 직접 고치지 않고 도구 실행 또는 보류로 분류한다.
-5. 승인된 범위만 수정한다.
+5. 합의한 범위만 수정한다.
 6. 관련 lint/typecheck/test 중 가장 작은 검증을 실행한다.
