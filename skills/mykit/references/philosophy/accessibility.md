@@ -7,6 +7,8 @@
 
 - native HTML 요소를 검토하기 전에, 이 UI 패턴에 대해 프로젝트 디자인 시스템에 이미 SSOT
   컴포넌트가 있는지 먼저 확인한다. 있으면 그 컴포넌트를 재사용한다.
+- 접근성은 의미가 생기는 계층에서 보장한다. `NameTextForm`이 그 지점이면 label/aria는 그
+  안에 둔다. `TextField`는 계약을 열고, feature는 채우지 않는다.
 - 가능한 한 native HTML 요소와 속성을 먼저 사용한다.
 - `role`로 native 동작을 흉내 내기 전에 `<button>`, `<a>`, `<input>`, `<label>`, `<fieldset>`을 검토한다.
 - checkbox와 dropdown은 디자인 일관성 문제로 native를 화면에 직접 노출하지 않는다.

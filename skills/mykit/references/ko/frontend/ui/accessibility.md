@@ -3,6 +3,7 @@
 ## 규칙
 - native 요소를 검토하기 전에 디자인 시스템에 해당 UI 패턴의 SSOT 컴포넌트가 있는지 먼저 확인한다.
 - ARIA보다 native HTML 시맨틱을 우선한다.
+- 접근성은 의미가 생기는 계층에서 보장한다. `NameTextForm`이 label/aria를 가진다. 호출부가 primitive에 label을 채우지 않는다.
 - interactive role 요소는 키보드 조작 가능해야 한다.
 - 포커스 가능한 요소에 `aria-hidden`을 사용하지 않는다.
 

@@ -3,6 +3,7 @@
 ## Rules
 - Before reaching for a native element, check whether the design system already has an SSOT component for this UI pattern.
 - Prefer native HTML semantics over ARIA overrides.
+- Guarantee a11y at the layer where meaning starts. `NameTextForm` owns label/aria. Call sites do not fill primitive labels.
 - Interactive custom roles must be keyboard operable.
 - Do not hide focusable elements with `aria-hidden`.
 
