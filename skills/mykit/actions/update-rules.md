@@ -2,8 +2,8 @@
 
 mykit 자체의 SOT 규칙 문서(`code-quality.md`)를 추가하거나 수정하고, `source-rule-map.md`
 기준으로 전파까지 처리할 때 사용한다. 프로젝트가 mykit을 사용하며 만드는 문서(README,
-API docs, playbook 등)는 `update-docs.md`로 라우팅한다. 이 action은 mykit 자신의 규칙
-저작 전용이다.
+API docs, playbook 등)는 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/update-docs.md`로
+라우팅한다. 이 action은 mykit 자신의 규칙 저작 전용이다.
 
 ## Project Scan
 
