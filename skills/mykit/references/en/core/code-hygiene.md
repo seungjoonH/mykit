@@ -8,6 +8,9 @@
 - Before writing a new format/transform function, check whether `utils/` already has one. Never hardcode a value that must stay consistent project-wide (like locale) inside a function — hardcoding it differently per file becomes a bug where each screen looks different.
 - Extract a util even at a single call site when the logic is util-shaped. Look for that helper first on the next task and reuse it.
 - Split `utils/` by concern (`date.ts`, `number.ts`, `string.ts`, etc.) instead of dumping everything into one `utils.ts`.
+- Do not dump unrelated implementation files at a domain folder root. Split by concern into subfolders. Do not make a folder per file.
+- Count same-named TSX, CSS Module, hook, and type files as one logical implementation unit. At 20 or more direct units, review both role mixing and cohesion. Never split on count alone.
+- A design system with one abstraction level may stay flat. Move domain-specific implementations out of shared folders and into their domain layer.
 
 ## Do
 - Fix root cause before adding guard rails.

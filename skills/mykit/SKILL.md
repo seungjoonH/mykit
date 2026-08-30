@@ -131,6 +131,7 @@ Think Before Coding, Extensibility First, Scoped Changes, Goal-Driven Execution�
 | 컴포넌트 props/variant/타입 설계, 의미 단위 닫힘(`NameTextForm`) 점검 | `actions/audit-component-api.md` |
 | 데이터 설계/사이드이펙트/정리(utils)/성능 위생만 점검 | `actions/audit-hygiene.md` |
 | 가드/인가/RLS만 점검 | `actions/audit-auth.md` |
+| 폴더 덤프/유닛 폴더/관심사 하위폴더만 점검 | `actions/audit-directory-structure.md` |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | mykit 자체 code-quality.md/규칙 문서 추가 또는 수정 | `actions/update-rules.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |

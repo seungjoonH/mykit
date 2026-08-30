@@ -6,6 +6,9 @@
 - Keep domain-agnostic pure transforms in `utils/`. Persist, auth, and API calls belong in a hook or domain layer.
 - Extract a util even at a single call site when the logic is util-shaped. Look for that helper first on the next task and reuse it.
 - Before writing a new format/transform function, check whether `utils/` already has one. Never hardcode a value that must stay consistent project-wide (like locale) inside a function.
+- Do not dump unrelated implementation files at a domain folder root. Split by concern into subfolders. Do not make a folder per file.
+- Count same-named TSX, CSS Module, hook, and type files as one logical implementation unit. At 20 or more direct units, review both role mixing and cohesion. Never split on count alone.
+- A design system with one abstraction level may stay flat. Move domain-specific implementations out of shared folders and into their domain layer.
 
 ## Do
 - Fix root cause before adding guard rails.

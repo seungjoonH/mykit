@@ -14,6 +14,7 @@ dispatcher다.
 | 컴포넌트 API | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-component-api.md` | 프론트엔드 |
 | 데이터 설계, 사이드이펙트, utils, 성능 | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-hygiene.md` | 언어 무관. 백엔드만이면 hooks/a11y/component-api는 건너뛴다 |
 | 가드, 인가, RLS | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-auth.md` | 언어 무관 |
+| 폴더 덤프, 유닛 폴더, 관심사 하위폴더 | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-directory-structure.md` | 언어 무관. 프론트만이 아니다 |
 
 좁은 스타일만 있으면 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/review-code-style.md`로
 라우팅한다. 새 컴포넌트/화면이면 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/add-component.md`/
@@ -40,7 +41,7 @@ dispatcher다.
 | 대상 | 적용 action |
 |---|---|
 | `.tsx`/`.jsx` 포함 | specify-meaning-unit, audit-hooks, audit-a11y-ssot, audit-component-api + 아래 공통 |
-| 항상 | audit-api-layer, audit-hygiene, audit-auth |
+| 항상 | audit-api-layer, audit-hygiene, audit-auth, audit-directory-structure |
 
 `전체 코드베이스`를 고르면 모든 파일을 읽지 않는다. 각 audit의 grep 키워드로 후보를 좁힌다.
 

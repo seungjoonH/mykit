@@ -4,6 +4,7 @@
 - Split tests by controller/service/repository boundaries.
 - Start bug fixes with a failing reproduction test.
 - Cover both success and failure paths for critical flows.
+- Make non-colocated test folders mirror source domains where practical. Do not flatten unrelated domain tests into one root.
 
 ## Do
 - Keep unit tests fast and use integration tests for contracts/persistence.
