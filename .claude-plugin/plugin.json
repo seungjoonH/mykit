@@ -1,7 +1,7 @@
 {
   "name": "mykit",
   "description": "Personal Claude Code skill toolkit: UI/component/form playbook, project scaffolding, and behavioral guidelines, by seungjoonH",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": {
     "name": "seungjoonH"
   },
