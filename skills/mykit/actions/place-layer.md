@@ -21,3 +21,5 @@
 | `page` | route data, shell, metadata |
 
 기존 훅/컴포넌트/유틸을 구현 전에 먼저 찾는다. 한 곳에서만 써도 유틸 성격이면 분리한다.
+계층이 맞은 뒤 루트에 쌓인 구현 파일은
+`$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-directory-structure.md`로 보낸다.

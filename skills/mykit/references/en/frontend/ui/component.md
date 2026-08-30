@@ -18,6 +18,7 @@
 - Never hand-list several items with nearly identical transform rules inside a JSX prop. Pull them into a declarative config array and build them with `map`.
 - Close each field as a meaning unit. Putting `label={t('name')}` on `TextField` is the same skip as using `Chip` instead of `StatusChip`. Specify it into `NameTextForm`.
 - `feature`/`page` must not import interactive primitives.
+- Keep tsx, css, hook, and `type.ts` of one meaning in that unit's own folder. Do not dump them as siblings in a layer, domain, or route root.
 
 ## Do
 - Extract handlers and computed values before JSX return. Put `handleXxx` in the component body. JSX only receives a reference. Never `onClick={() => ...}`, even inside `map`.

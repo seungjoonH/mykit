@@ -18,6 +18,7 @@
 - 변환 규칙이 거의 같은 항목을 JSX prop 안에 손으로 여러 개 나열하지 않는다. 선언적 설정 배열로 뽑고 `map`으로 만든다.
 - 의미 단위로 닫는다. `TextField`에 `label={t('name')}`을 거는 것은 `Chip`에 tone을 걸며 `StatusChip`을 안 만드는 것과 같다. `NameTextForm`처럼 구체화한다.
 - `feature`/`page`는 interactive primitive를 직접 쓰지 않는다.
+- 한 의미의 tsx, css, 훅, `type.ts`는 자기 폴더에 같이 둔다. 계층·도메인·라우트 루트에 형제로 쌓지 않는다.
 
 ## Do
 - JSX 반환 전에 계산 값과 핸들러를 미리 정리한다. `handleXxx`는 본문에 두고 JSX에는 참조만 연결한다. `onClick={() => ...}`는 `map`이어도 금지다.

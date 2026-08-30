@@ -16,6 +16,7 @@ route/page, dashboard, settings, list/detail, form workflow, 화면 전체 layou
 ## mustHold
 
 필드는 `NameTextForm`처럼 의미 단위로 닫는다. `feature`/`page`는 `TextField`를 직접 쓰지
+않는다. 새 컴포넌트는 tsx, css, 훅, `type.ts`를 한 폴더에 둔다. 계층 루트에 형제로 쌓지
 않는다.
 
 ## 서브액션
