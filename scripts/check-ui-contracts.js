@@ -85,6 +85,7 @@ const addComponent = await read("skills/mykit/actions/add-component.md");
 const buildScreen = await read("skills/mykit/actions/build-screen.md");
 const codeRefactoring = await read("skills/mykit/actions/code-refactoring.md");
 const reviewCodeStyle = await read("skills/mykit/actions/review-code-style.md");
+const expressLayering = await read("skills/mykit/actions/audit-express-layering.md");
 const auditHooks = await read("skills/mykit/actions/audit-hooks.md");
 const auditApiLayer = await read("skills/mykit/actions/audit-api-layer.md");
 const auditA11ySsot = await read("skills/mykit/actions/audit-a11y-ssot.md");
@@ -136,7 +137,8 @@ includesAll(skill, [
 includesAll(addComponent, [/build-screen\.md/, /route\/page/, /code-refactoring\.md/, /audit-hooks\.md/, /NameTextForm/, /의미 단위로 닫/, /interactive primitive/, /specify-meaning-unit\.md/, /place-layer\.md/, /한 폴더/], "add-component routing");
 includesAll(buildScreen, [/구조적 QA/, /Visual QA/, /Content QA/, /금지 문자열을 자동 검색/, /기능 완료와 디자인 완료를 별도로 판정/, /code-refactoring\.md/, /NameTextForm/, /의미 단위로 닫/, /specify-meaning-unit\.md/, /screen-structure\.md/], "build-screen action");
 includesAll(reviewCodeStyle, [/review-code-style의 스코프 밖/, /code-refactoring\.md/, /audit-component-api\.md/, /TextField/, /printWidth/, /handleXxx/], "review-code-style routing");
-includesAll(codeRefactoring, [/dirty worktree/, /audit-hooks\.md/, /audit-api-layer\.md/, /audit-a11y-ssot\.md/, /audit-component-api\.md/, /audit-hygiene\.md/, /audit-auth\.md/, /audit-directory-structure\.md/, /review-code-style\.md/, /의미 단위 닫힘/, /specify-meaning-unit\.md/, /항상/], "code-refactoring dispatcher");
+includesAll(codeRefactoring, [/dirty worktree/, /audit-hooks\.md/, /audit-api-layer\.md/, /audit-a11y-ssot\.md/, /audit-component-api\.md/, /audit-hygiene\.md/, /audit-auth\.md/, /audit-directory-structure\.md/, /audit-express-layering\.md/, /review-code-style\.md/, /의미 단위 닫힘/, /specify-meaning-unit\.md/, /항상/], "code-refactoring dispatcher");
+includesAll(expressLayering, [/@nestjs\//, /next\.config/, /router -> controller -> service -> repository/, /review-code-style\.md/, /기본 오류 메시지.*영어/, /requestId/, /errorHandler/], "Express layering action");
 includesAll(auditHooks, [/audit-a11y-ssot\.md/, /audit-api-layer\.md/, /wiring/, /onSuccess/, /audit-component-api\.md/, /TextField/, /hooks-store\.md/], "audit-hooks action");
 includesAll(auditApiLayer, [/언어나 스택에 무관하게 적용된다/, /같은 리소스를 다루는/, /라우트 핸들러/, /client 체크/, /route-handler/], "audit-api-layer action");
 includesAll(auditA11ySsot, [/SSOT 컴포넌트/, /<select`/], "audit-a11y-ssot action");
@@ -159,11 +161,38 @@ const buildScreenCommand = await read("commands/build-screen.md");
 const auditComponentApiCommand = await read("commands/audit-component-api.md");
 const codeRefactoringCommand = await read("commands/code-refactoring.md");
 const pluginManifest = await read(".claude-plugin/plugin.json");
+const commentRefactoringSkill = await read("skills/comment-refactoring/SKILL.md");
+const frontendComponentStructureSkill = await read("skills/frontend-component-structure/SKILL.md");
+const frontendComponentMigration = await read(
+  "skills/frontend-component-structure/references/migration.md",
+);
+const packageManifest = await read("package.json");
 includesAll(addComponentCommand, [/description:.*TextField/, /NameTextForm/, /의미 단위로 닫/], "add-component command");
 includesAll(buildScreenCommand, [/description:.*TextField/, /NameTextForm/, /의미 단위로 닫/], "build-screen command");
 includesAll(auditComponentApiCommand, [/description:.*TextField/, /NameTextForm/, /의미 단위/], "audit-component-api command");
 includesAll(codeRefactoringCommand, [/directory-structure/], "code-refactoring command");
-includesAll(pluginManifest, [/"skills": \["\.\/skills\/mykit"\]/, /"commands": "\.\/commands"/, /NameTextForm|forms/], "claude plugin manifest");
+includesAll(pluginManifest, [/skills\/mykit/, /skills\/comment-refactoring/, /skills\/frontend-component-structure/, /"commands": "\.\/commands"/, /NameTextForm|forms/], "claude plugin manifest");
+includesAll(commentRefactoringSkill, [/사용자가 명시적으로 요청하지 않아도 예외 없이 자동 트리거/, /코드 블록 바로 위/, /명사형으로 끝/, /### Before/, /### After/], "comment-refactoring skill");
+includesAll(frontendComponentStructureSkill, [
+  /React \+ TypeScript \+ Vite/,
+  /COMPONENT_FOLDER_THRESHOLD = 3/,
+  /feature.*layout.*composed.*interactive.*design/,
+  /@composed\/\*/,
+  /vite-tsconfig-paths/,
+  /index\.ts/,
+  /references\/migration\.md/,
+  /두 단계 이상/,
+], "frontend component structure skill");
+includesAll(frontendComponentMigration, [
+  /components\/\{layout,design,composed,interactive,feature\}/,
+  /치환한 import 수/,
+  /typecheck와 build/,
+  /사용자 승인 없이.*되돌리지 않는다/,
+], "frontend component migration");
+includesAll(packageManifest, [
+  /skills\/frontend-component-structure\//,
+  /skills\/comment-refactoring\//,
+], "npm package skill inclusion");
 
 const commandFiles = (await fs.readdir(path.join(repositoryRoot, "commands"))).filter((name) => name.endsWith(".md"));
 for (const name of commandFiles) {
