@@ -1,9 +1,19 @@
 # Express Backend
 
+## Applicability
+- Apply only to packages that directly depend on `express` without Nest or Next.
+- Skip this contract when `@nestjs/*`, `next`, `next.config.*`, or Nest application structure is
+  present.
+- Apply it whenever standalone Express code is created, changed, or refactored.
+- Existing formatter and code-style rules take precedence over example formatting.
+
 ## Rules
 - Keep route handlers minimal and contract-focused.
 - Validate request payloads at route boundaries with schema middleware.
 - Standardize error response shape through one central error handler.
+- Keep dependencies moving from router to controller to service to repository.
+- Keep services independent of Express request and response objects.
+- Use English for default error messages unless another language is explicitly requested.
 
 ## Do
 - Use `validate(schema)` and `asyncHandler` in every mutable endpoint.
@@ -22,10 +32,19 @@ router.post("/v1/users", validate(createUserSchema), asyncHandler(async (req, re
 ```
 
 ## Boundaries
-- Router: validation, status code, contract mapping.
-- Service: business rules and orchestration.
+- Router: URL, method, boundary middleware, and controller wiring only.
+- Controller: HTTP input/output mapping only.
+- Service: validation, business rules, authorization decisions, and orchestration.
 - Repository: query/persistence mapping.
 - Error middleware: unified error payload.
+
+## Required Contracts
+- Use `AppError` subclasses for expected failures.
+- Return success as `{ ok: true, data, meta? }` through `sendSuccess`.
+- Return errors as `{ ok: false, error: { code, message, details?, requestId } }`.
+- Add request IDs, normalize authenticated users into `req.user`, handle unmatched routes centrally,
+  and register `errorHandler` last.
+- Never expose unexpected error internals to clients.
 
 ## Test Scope
 - Contract tests for `400`, `201`, and error payload shape.

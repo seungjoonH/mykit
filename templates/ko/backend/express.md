@@ -1,9 +1,18 @@
 # Express 백엔드
 
+## 적용 범위
+- `express`에 직접 의존하고 Nest나 Next를 쓰지 않는 package에만 적용한다.
+- `@nestjs/*`, `next`, `next.config.*`, Nest 애플리케이션 구조가 있으면 전체를 건너뛴다.
+- Express 단독 코드를 생성, 수정, 리팩토링할 때마다 적용한다.
+- 예시 포맷보다 기존 formatter와 code-style 규칙을 우선한다.
+
 ## 규칙
 - 라우트 핸들러는 계약 중심으로 최소화한다.
 - 입력 검증은 라우트 경계의 스키마 미들웨어에서 강제한다.
 - 에러 응답은 중앙 `errorHandler`에서 공통 포맷으로 반환한다.
+- 의존 방향은 router에서 controller, service, repository 순서로 유지한다.
+- Service는 Express request와 response 객체를 알지 못해야 한다.
+- 다른 언어를 명시하지 않으면 기본 오류 메시지는 영어로 쓴다.
 
 ## Do
 - 변경 엔드포인트는 `validate(schema)` + `asyncHandler` 패턴으로 통일한다.
@@ -22,10 +31,19 @@ router.post("/v1/users", validate(createUserSchema), asyncHandler(async (req, re
 ```
 
 ## 경계
-- Router: 검증, 상태코드, 계약 매핑.
-- Service: 비즈니스 규칙과 오케스트레이션.
+- Router: URL, method, 경계 middleware와 controller 연결만 담당한다.
+- Controller: HTTP 입력과 출력 변환만 담당한다.
+- Service: 검증, 업무 규칙, 권한 판단과 오케스트레이션을 담당한다.
 - Repository: 쿼리/영속성 매핑.
 - Error middleware: 공통 에러 페이로드.
+
+## 필수 계약
+- 예상 가능한 실패는 `AppError` 하위 타입으로 표현한다.
+- 성공은 `sendSuccess`를 거쳐 `{ ok: true, data, meta? }`로 반환한다.
+- 실패는 `{ ok: false, error: { code, message, details?, requestId } }`로 반환한다.
+- request ID를 추가하고 인증 사용자를 `req.user`로 정규화하며 미등록 경로를 중앙 처리하고
+  `errorHandler`를 마지막에 등록한다.
+- 예상하지 못한 오류의 내부 정보를 클라이언트에 노출하지 않는다.
 
 ## 테스트 범위
 - 계약 테스트(`400`, `201`, 에러 포맷) 검증.
