@@ -13,6 +13,8 @@
     "src/",
     "templates/",
     "skills/mykit/",
+    "skills/comment-refactoring/",
+    "skills/frontend-component-structure/",
     "commands/",
     ".claude-plugin/",
     "README.md",

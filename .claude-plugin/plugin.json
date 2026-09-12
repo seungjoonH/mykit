@@ -7,6 +7,10 @@
   },
   "license": "MIT",
   "keywords": ["guidelines", "best-practices", "coding", "scaffolding", "mykit", "ui", "components", "forms"],
-  "skills": ["./skills/mykit"],
+  "skills": [
+    "./skills/mykit",
+    "./skills/comment-refactoring",
+    "./skills/frontend-component-structure"
+  ],
   "commands": "./commands"
 }
