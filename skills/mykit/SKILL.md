@@ -122,6 +122,7 @@ Think Before Coding, Extensibility First, Scoped Changes, Goal-Driven Execution�
 | 요청 | 먼저 열 문서 |
 |---|---|
 | primitive/재사용 컴포넌트/기존 화면의 제한된 UI 조각 추가, 폼 필드 Specify, feature/page에서 TextField나 ChipButton 직접 조립 | `actions/add-component.md` |
+| React + TypeScript + Vite 컴포넌트 생성·수정의 카테고리 폴더와 import alias | 별도 `frontend-component-structure` 스킬. 컴포넌트 작업이면 함께 적용 |
 | 새 화면/route/dashboard/settings/list-detail/form workflow/화면 전체 layout 구현 | `actions/build-screen.md` |
 | 코드 스타일 점검/mykit style/lint 전 리뷰/PR 전 스타일 확인 | `actions/review-code-style.md` |
 | 기존 코드 전면 리팩토링. 기존 작품에 원칙을 심는 일 | `actions/code-refactoring.md` |
@@ -132,6 +133,7 @@ Think Before Coding, Extensibility First, Scoped Changes, Goal-Driven Execution�
 | 데이터 설계/사이드이펙트/정리(utils)/성능 위생만 점검 | `actions/audit-hygiene.md` |
 | 가드/인가/RLS만 점검 | `actions/audit-auth.md` |
 | 폴더 덤프/유닛 폴더/관심사 하위폴더만 점검 | `actions/audit-directory-structure.md` |
+| Express 단독 프로젝트의 코드 생성/수정/레이어 점검 | `actions/audit-express-layering.md`. Nest/Next 신호가 있으면 적용하지 않는다 |
 | README/API docs/playbook/ADR/사용자 가이드 수정 | `actions/update-docs.md` |
 | mykit 자체 code-quality.md/규칙 문서 추가 또는 수정 | `actions/update-rules.md` |
 | 버전 릴리즈/release 진행/배포 버전 올리기/develop→main 릴리즈 커밋 | `actions/release-version.md` |
@@ -165,6 +167,7 @@ reference만 적용한다.
 |---|---|
 | 요구사항/유저 플로우/범위 변경 | `references/en/core/readability.md`, `references/en/core/code-style.md` |
 | API 스펙/에러 포맷/요청 응답 스키마 변경 | `references/en/backend/<스택>.md`, `references/en/core/error-handling.md`, `references/en/security.md`, `references/en/testing.md` |
+| Express 단독 package의 코드 생성/수정 | `actions/review-code-style.md`, `actions/audit-express-layering.md`, `references/en/backend/express.md` |
 | 엔터티/테이블/인덱스/관계 변경 | `references/en/core/data-design.md`, `references/en/database/<DB>.md`, `references/en/backend/<스택>.md` |
 | 컴포넌트 구조/접근성/SVG 아이콘 변경, 폼 필드 추가, TextField를 화면에 조립 | `actions/add-component.md`, `references/philosophy/meaning-unit.md`, `references/philosophy/component-layers.md`(계층 표), `references/en/frontend/ui/component.md` |
 | 폼 필드/입력/TextField/ChipButton을 feature나 page에서 직접 쓰거나 의미 단위로 닫기 | `actions/add-component.md`, `references/philosophy/meaning-unit.md`, `references/en/frontend/ui/component.md` |

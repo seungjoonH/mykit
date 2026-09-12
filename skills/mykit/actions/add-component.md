@@ -13,6 +13,9 @@ route/page, dashboard, settings, list/detail, form workflow, 화면 전체 layou
 이 문서는 dispatcher다. 철학 본문을 다시 쓰지 않는다. `feature`/`page`는 interactive primitive를
 직접 쓰지 않는다.
 
+React + TypeScript + Vite 프로젝트면 별도 `frontend-component-structure` 스킬도 읽어
+카테고리 폴더와 import alias를 함께 적용한다.
+
 ## mustHold
 
 필드는 `NameTextForm`처럼 의미 단위로 닫는다. `feature`/`page`는 `TextField`를 직접 쓰지

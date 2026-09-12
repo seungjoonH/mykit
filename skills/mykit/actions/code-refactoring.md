@@ -15,6 +15,8 @@ dispatcher다.
 | 데이터 설계, 사이드이펙트, utils, 성능 | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-hygiene.md` | 언어 무관. 백엔드만이면 hooks/a11y/component-api는 건너뛴다 |
 | 가드, 인가, RLS | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-auth.md` | 언어 무관 |
 | 폴더 덤프, 유닛 폴더, 관심사 하위폴더 | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-directory-structure.md` | 언어 무관. 프론트만이 아니다 |
+| React + TypeScript + Vite 컴포넌트 폴더와 import alias | `$CLAUDE_PLUGIN_ROOT/skills/frontend-component-structure/SKILL.md`와 `references/migration.md` | 해당 스택의 컴포넌트 구조 마이그레이션일 때 함께 적용 |
+| Express 레이어 경계와 중앙 에러 처리 | `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/audit-express-layering.md` | Express 단독 package만. Nest/Next는 건너뛴다 |
 
 좁은 스타일만 있으면 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/review-code-style.md`로
 라우팅한다. 새 컴포넌트/화면이면 `$CLAUDE_PLUGIN_ROOT/skills/mykit/actions/add-component.md`/
@@ -41,7 +43,9 @@ dispatcher다.
 | 대상 | 적용 action |
 |---|---|
 | `.tsx`/`.jsx` 포함 | specify-meaning-unit, audit-hooks, audit-a11y-ssot, audit-component-api + 아래 공통 |
+| React + TypeScript + Vite 컴포넌트 구조 포함 | frontend-component-structure의 마이그레이션 모드 + 아래 공통 |
 | 항상 | audit-api-layer, audit-hygiene, audit-auth, audit-directory-structure |
+| Express 단독 package | audit-express-layering. 코드 표현은 review-code-style 우선 |
 
 `전체 코드베이스`를 고르면 모든 파일을 읽지 않는다. 각 audit의 grep 키워드로 후보를 좁힌다.
 
